@@ -17,6 +17,6 @@ router.use("/auth",authRoutes);
 
 router.use("/db", dbRoutes);
 
-router.use("/private",privateRoutes);
+router.use("/private",requireSession(),privateRoutes);
 
 module.exports = router;

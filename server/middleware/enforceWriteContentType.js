@@ -6,7 +6,7 @@ module.exports = function enforceWriteContentType(roules = []){
         if(!writeMethod.includes(req.method)) return next();
 
         const ct = (req.headers["content-type"] || "").toLowerCase();
-        const roule = roules.find(r => req.path.startWith(r.path));
+        const roule = roules.find(r => req.path.startsWith(r.path));
         if(!roule) return next();
         if(!ct.includes(roule.type)) {
             return res.status(415).json({
