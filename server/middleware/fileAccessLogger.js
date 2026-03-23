@@ -3,7 +3,7 @@ const createLogger = require("../lib/fileLogger");
 
 module.exports = function fileAccessLogger(logPath){
     const logger = createLogger(
-        logPath || path.join(__dirname,"...","log","accesso.log")
+        logPath || path.join(__dirname,"..","log","accesso.log")
     )
     return(req,res,next) =>{
         const start = Date.now();

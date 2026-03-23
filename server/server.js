@@ -1,16 +1,21 @@
-"use stict"
+"use strict"
 
-// Importa express
-const express = require('express');
-const app = express();
-const PORT = 3000;
+const https = require("https");
+const fs = require("fs");
+const path = require("path");
+const app = require("./app");
 
-// Definizione di una route base
-app.get('/', (req, res) => {
-  res.send('Ciao! Il server Express è attivo e funzionante.');
-});
+const PORT = process.env.PORT || 3000;
 
-// Avvio del server
-app.listen(PORT, () => {
-  console.log(`Server in ascolto su http://localhost:${PORT}`);
-});
+const options = {
+  cert: fs.readFileSync(path.join(__dirname,"certs","server.crt")),
+  key: fs.readFileSync(path.join(__dirname,"certs","server.key"))
+} 
+
+/*https.createServer(options,app).listen(PORT,() =>{
+  console.log(`Server HTTPS avviato su https://localhost:${PORT}`);
+})*/
+
+app.listen(PORT,() =>{
+  console.log(`Server HTTPS avviato su https://localhost:${PORT}`);
+})
