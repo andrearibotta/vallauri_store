@@ -1,0 +1,141 @@
+/* ===== FOOTER ===== */
+.site-footer {
+  position: relative;
+}
+
+.footer-wave {
+  line-height: 0;
+  overflow: hidden;
+  background: #f4faf9;
+}
+
+.footer-wave svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+
+.footer-body {
+  background: #0f2922;
+  color: #a8cfc8;
+}
+
+/* Brand */
+.footer-brand-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #00b398, #00d4b0);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.footer-brand-name {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.footer-tagline {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.84rem;
+  color: #7aa89f;
+  line-height: 1.7;
+}
+
+/* Social */
+.social-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.07);
+  color: #a8cfc8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.social-btn:hover {
+  background: #00b398;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* Links */
+.footer-heading {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.55rem;
+}
+
+.footer-links a {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.875rem;
+  color: #7aa89f;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #00d4b0;
+}
+
+/* Badge sostenibile */
+.footer-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 179, 152, 0.15);
+  color: #00d4b0;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 179, 152, 0.25);
+  margin-top: 0.75rem;
+}
+
+/* Bottom bar */
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.footer-copy {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  color: #4d7a72;
+}
+
+.footer-bottom-link {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  color: #4d7a72;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-bottom-link:hover {
+  color: #00b398;
+}
