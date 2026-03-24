@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 const express = require("express");
 const session = require("express-session");
@@ -10,6 +10,10 @@ const fileAccessLogger = require("./middleware/fileAccessLogger");
 const enforceWriteContentType = require("./middleware/enforceWriteContentType");
 const apiRouter = require("./routes/index");
 
+// ─── Passport ────────────────────────────────────────────────────────────────
+// Importa PRIMA la configurazione della strategy, poi passport
+const passport = require("./config/passport");
+
 const app = express();
 
 app.use(requestId());
@@ -17,34 +21,42 @@ app.use(requestLogger());
 app.use(fileAccessLogger());
 
 app.use(express.json());
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(session({
-    secret:process.env.SESSION_SECRET || "segreto_di_sviluppo",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: false,      // true solo con HTTPS
-        maxAge: 1000 * 60 * 60 * 24  // 24 ore
-    }
-}))
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET || "segreto_di_sviluppo",
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false,       // true solo con HTTPS
+            maxAge: 1000 * 60 * 60 * 24,  // 24 ore
+        },
+    })
+);
 
-app.use("/api",apiRouter);
+// Passport deve stare DOPO express-session
+app.use(passport.initialize());
+app.use(passport.session());
 
-app.use(enforceWriteContentType([
-    { path: "/api/auth/login", type: "application/json" },
-]))
+app.use("/api", apiRouter);
 
+app.use(
+    enforceWriteContentType([
+        { path: "/api/auth/login", type: "application/json" },
+    ])
+);
+
+// Error handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.statusCode || 500).json({
         error: err.message || "Errore interno del server",
-        requestId: req.id
+        requestId: req.id,
     });
 });
-
 
 module.exports = app;
