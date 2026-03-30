@@ -1,5 +1,6 @@
 "use strict";
 
+require("dotenv").config();
 const passport = require("passport");
 const { Strategy: GoogleStrategy } = require("passport-google-oauth20");
 
@@ -14,26 +15,25 @@ passport.use(
         {
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/api/auth/google/callback",
+            callbackURL,
         },
         async (accessToken, refreshToken, profile, done) => {
             const email = profile.emails?.[0]?.value;
             if (!email) return done(new Error("Nessuna email dal profilo Google"));
 
-            // Cerca utente in memoria
-            let user = utenti.find(u => u.google_id === profile.id);
+            let user = utenti.find(u => u.google_id === profile.id || u.email === email);
 
             if (!user) {
-                // Primo accesso: crea utente e salvalo in memoria
+                // Utente nuovo: non lo salvo ancora, aspetto la password
                 user = {
-                    id: utenti.length + 1,
+                    id: null,
                     email,
                     google_id: profile.id,
                     nome: profile.displayName,
                     ruolo: "user",
+                    password: profile.password,
+                    nuovoUtente: true,
                 };
-                utenti.push(user);
-                console.log("Nuovo utente creato:", user);
             }
 
             return done(null, user);
@@ -42,12 +42,15 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+    done(null, user.nuovoUtente ? JSON.stringify(user) : user.id);
 });
 
-passport.deserializeUser((id, done) => {
-    const user = utenti.find(u => u.id === id);
+passport.deserializeUser((data, done) => {
+    if (typeof data === "string" && data.startsWith("{")) {
+        return done(null, JSON.parse(data));
+    }
+    const user = utenti.find(u => u.id === data);
     done(null, user || false);
 });
 
-module.exports = passport;
+module.exports = { passport, utenti };

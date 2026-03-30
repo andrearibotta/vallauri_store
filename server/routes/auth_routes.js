@@ -1,39 +1,41 @@
 "use strict";
 const express = require("express");
-const passport = require("passport");
-const db = require("../db/mysql");
+const { passport, utenti } = require("../config/passport");
 const router = express.Router();
 
-// ─── Login classico ─────────────────────────────────────────────────────────
+// ─── Login classico ──────────────────────────────────────────────────────────
 
-router.post("/login", async (req, res, next) => {
+router.post("/login", (req, res, next) => {
     try {
         const { email, password } = req.body || {};
         if (!email || !password) {
-            const err = new Error("Email e password obbligatori");
-            err.statusCode = 400;
-            throw err;
+            return res.status(400).json({ error: "Email e password obbligatori", requestId: req.id });
         }
 
-        const rows = await db.query(
-            "SELECT * FROM utenti WHERE email = ? AND password = ?",
-            [email, password]
-        );
+        const user = utenti.find(u => u.email === email);
 
-        if (rows.length === 0) {
+        if (!user) {
+            return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
+        }
+
+        if (!user.password) {
             return res.status(401).json({
-                error: "Credenziali non valide",
-                requestId: req.id,
+                error: "Account Google",
+                message: "Questo account è stato creato con Google. Usa il login Google oppure imposta una password.",
+                requestId: req.id
             });
         }
 
-        const user = rows[0];
+        if (user.password !== password) {
+            return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
+        }
 
         req.session.regenerate((err) => {
             if (err) return next(err);
             req.session.user = { id: user.id, email: user.email, role: user.ruolo };
             res.json({ ok: true, message: "Login effettuato", user: req.session.user, requestId: req.id });
         });
+
     } catch (err) {
         next(err);
     }
@@ -41,38 +43,70 @@ router.post("/login", async (req, res, next) => {
 
 // ─── Google OAuth ────────────────────────────────────────────────────────────
 
-/**
- * GET /api/auth/google
- * Reindirizza l'utente alla schermata di consenso Google.
- */
 router.get(
     "/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-/**
- * GET /api/auth/google/callback
- * Google reindirizza qui dopo il consenso.
- */
 router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "/api/auth/google/failure" }),
     (req, res) => {
-        // Passport ha già impostato req.user tramite deserializeUser.
-        // Sincronizziamo anche req.session.user per compatibilità con il resto del codice.
+        if (req.user.nuovoUtente) {
+            req.session.pendingUser = req.user;
+            return res.redirect("/scegli-password.html");
+        }
+
         req.session.user = {
             id: req.user.id,
             email: req.user.email,
             role: req.user.ruolo,
+            password: req.user.password,
         };
-
-        // Reindirizza al frontend (cambia l'URL in base alla tua app)
-        res.redirect(process.env.FRONTEND_URL || "http://localhost:5173");
+        res.redirect(process.env.FRONTEND_URL || "/");
     }
 );
 
 router.get("/google/failure", (req, res) => {
     res.status(401).json({ error: "Autenticazione Google fallita", requestId: req.id });
+});
+
+// ─── Completa registrazione ──────────────────────────────────────────────────
+
+router.post("/completa-registrazione", (req, res) => {
+    const { password } = req.body;
+    const pending = req.session.pendingUser;
+
+    if (!pending) {
+        return res.status(400).json({ error: "Nessuna registrazione in corso", requestId: req.id });
+    }
+
+    if (!password || password.length < 6) {
+        return res.status(400).json({ error: "Password di almeno 6 caratteri", requestId: req.id });
+    }
+
+    // Salvo l'utente in memoria
+    const nuovoUtente = {
+        id: utenti.length + 1,
+        email: pending.email,
+        google_id: pending.google_id,
+        nome: pending.nome,
+        ruolo: "user",
+        password,
+    };
+    utenti.push(nuovoUtente);
+    console.log("Nuovo utente salvato in memoria:", nuovoUtente);
+
+    // Pulisco il pending e creo la sessione
+    req.session.pendingUser = null;
+    req.session.user = {
+        id: nuovoUtente.id,
+        email: nuovoUtente.email,
+        role: nuovoUtente.ruolo,
+        password: nuovoUtente.password
+    };
+
+    res.json({ ok: true, message: "Registrazione completata" });
 });
 
 // ─── Utente corrente ─────────────────────────────────────────────────────────
