@@ -44,7 +44,11 @@ router.post("/login", (req, res, next) => {
 // ─── Google OAuth ────────────────────────────────────────────────────────────
 
 router.get(
-    "/google",
+    "/google/insert",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get("/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
