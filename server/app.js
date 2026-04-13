@@ -19,6 +19,15 @@ const { passport } = require("./config/passport");
 
 const app = express();
 
+const cors = require("cors");
+app.use(cors({
+    origin: "http://localhost:4200",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}))
+
+console.log("ciao")
 app.use(requestId());
 app.use(requestLogger());
 app.use(fileAccessLogger());
