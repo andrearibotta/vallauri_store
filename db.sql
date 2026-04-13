@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS vallauristore;
+USE vallauristore;
+
 CREATE TABLE classe (
     id_classe INT AUTO_INCREMENT PRIMARY KEY,
     classe VARCHAR(10) NOT NULL, -- Es: "5B"

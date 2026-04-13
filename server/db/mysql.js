@@ -8,7 +8,7 @@ function createPoolFromMysql(){
         port: Number(process.env.MYSQL_PORT || 3306),
         user: process.env.MYSQL_USER || "root",
         password: process.env.MYSQL_PASSWORD || "",
-        database: process.env.MYSQL_DATABASE || "cup-ospedaliero",
+        database: process.env.MYSQL_DATABASE || "vallauristore",
         waitForConnections: true,
         connectionLimit: 10,
         charset: "utf8mb4"
