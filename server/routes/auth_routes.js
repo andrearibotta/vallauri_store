@@ -56,6 +56,8 @@ router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "/api/auth/google/failure" }),
     (req, res) => {
+        console.log("CALLBACK - req.user:", req.user); // ← aggiungi questo
+        console.log("FRONTEND_URL:", process.env.FRONTEND_URL); // ← e questo
         if (req.user.nuovoUtente) {
             req.session.pendingUser = req.user;
             return res.redirect("/scegli-password.html");
@@ -67,7 +69,7 @@ router.get(
             role: req.user.ruolo,
             password: req.user.password,
         };
-        res.redirect(process.env.FRONTEND_URL || "/");
+        return res.redirect(process.env.FRONTEND_URL);
     }
 );
 
@@ -79,17 +81,20 @@ router.get("/google/failure", (req, res) => {
 
 router.post("/completa-registrazione", (req, res) => {
     const { password } = req.body;
-    const pending = req.session.pendingUser;
 
-    if (!pending) {
+    // Passport mette i dati direttamente in req.user
+    const pending = req.user;
+
+    console.log("REQ.USER:", pending);
+
+    if(!pending) {
         return res.status(400).json({ error: "Nessuna registrazione in corso", requestId: req.id });
     }
 
-    if (!password || password.length < 6) {
+    if(!password || password.length < 6) {
         return res.status(400).json({ error: "Password di almeno 6 caratteri", requestId: req.id });
     }
 
-    // Salvo l'utente in memoria
     const nuovoUtente = {
         id: utenti.length + 1,
         email: pending.email,
@@ -99,10 +104,7 @@ router.post("/completa-registrazione", (req, res) => {
         password,
     };
     utenti.push(nuovoUtente);
-    console.log("Nuovo utente salvato in memoria:", nuovoUtente);
 
-    // Pulisco il pending e creo la sessione
-    req.session.pendingUser = null;
     req.session.user = {
         id: nuovoUtente.id,
         email: nuovoUtente.email,

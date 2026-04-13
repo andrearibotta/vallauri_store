@@ -22,4 +22,5 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT,() =>{
   console.log(`Server HTTPS avviato su https://localhost:${PORT}`);
+  console.log(`FRONT END: ${process.env.FRONTEND_URL}`);
 })
