@@ -15,7 +15,7 @@ const apiRouter = require("./routes/index");
 
 // ─── Passport ────────────────────────────────────────────────────────────────
 // Importa PRIMA la configurazione della strategy, poi passport
-const { passport } = require("./config/passport");
+const passport = require("./config/passport");
 
 const app = express();
 

@@ -1,7 +1,9 @@
 "use strict";
 const express = require("express");
-const { passport, utenti } = require("../config/passport");
+const passport = require("../config/passport");
 const router = express.Router();
+const db = require("../db/mysql");
+const { prependOnceListener } = require("../app");
 
 // ─── Login classico ──────────────────────────────────────────────────────────
 
@@ -45,31 +47,48 @@ router.post("/login", (req, res, next) => {
 
 router.get(
     "/google/insert",
-    passport.authenticate("google", { scope: ["profile", "email"] })
+    passport.authenticate("google", { scope: ["profile", "email"] ,state:"register"})
 );
 
 router.get("/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
+    passport.authenticate("google", { scope: ["profile", "email"],state:"login" })
 );
 
-router.get(
-    "/google/callback",
-    passport.authenticate("google", { failureRedirect: "/api/auth/google/failure" }),
+router.get("/google/callback",
+     passport.authenticate("google", { failureRedirect: "/api/auth/google/failure" }),
     (req, res) => {
-        console.log("CALLBACK - req.user:", req.user); // ← aggiungi questo
-        console.log("FRONTEND_URL:", process.env.FRONTEND_URL); // ← e questo
-        if (req.user.nuovoUtente) {
-            req.session.pendingUser = req.user;
-            return res.redirect("/scegli-password.html");
+        const state = req.query.state;
+        const user = req.user;
+
+        console.log("STATE:", state);
+        console.log("USER:", user);
+
+        // CASO: tentativo di LOGIN ma utente non esiste
+        if(state === "login" && user.nuovoUtente) {
+            return res.redirect(`${process.env.FRONTEND_URL}`);
         }
 
-        req.session.user = {
-            id: req.user.id,
-            email: req.user.email,
-            role: req.user.ruolo,
-            password: req.user.password,
-        };
-        return res.redirect(process.env.FRONTEND_URL);
+        // CASO: tentativo di REGISTRAZIONE ma utente esiste già
+        if(state === "register" && !user.nuovoUtente) {
+            return res.redirect(`${process.env.FRONTEND_URL}`);
+        }
+
+        // CASO: LOGIN ok — utente esiste
+        if(state === "login" && !user.nuovoUtente) {
+            req.session.user = {
+                id: user.id_utente,
+                email: user.email,
+                nome: user.nome,
+                cognome: user.cognome,
+                role: "user"
+            };
+            return res.redirect(process.env.FRONTEND_URL);
+        }
+
+        // CASO: REGISTRAZIONE ok — utente nuovo
+        if(state === "register" && user.nuovoUtente) {
+            return res.redirect("/scegli-password.html");
+        }
     }
 );
 
@@ -79,7 +98,7 @@ router.get("/google/failure", (req, res) => {
 
 // ─── Completa registrazione ──────────────────────────────────────────────────
 
-router.post("/completa-registrazione", (req, res) => {
+router.post("/completa-registrazione", async(req, res) => {
     const { password } = req.body;
 
     // Passport mette i dati direttamente in req.user
@@ -95,21 +114,16 @@ router.post("/completa-registrazione", (req, res) => {
         return res.status(400).json({ error: "Password di almeno 6 caratteri", requestId: req.id });
     }
 
-    const nuovoUtente = {
-        id: utenti.length + 1,
-        email: pending.email,
-        google_id: pending.google_id,
-        nome: pending.nome,
-        ruolo: "user",
-        password,
-    };
-    utenti.push(nuovoUtente);
+    const rows = await db.query(
+        "INSERT INTO utente (nome,cognome,email,google_id,password_hash) VALUES(?,?,?,?,?)",
+        [pending.nome,pending.cognome,pending.email,pending.google_id,password]
+    )
 
     req.session.user = {
-        id: nuovoUtente.id,
-        email: nuovoUtente.email,
-        role: nuovoUtente.ruolo,
-        password: nuovoUtente.password
+        id: pending.id,
+        email: pending.email,
+        role: pending.ruolo,
+        password: pending.password
     };
 
     res.json({ ok: true, message: "Registrazione completata" });
