@@ -47,17 +47,17 @@ router.post("/login", (req, res, next) => {
 
 router.get(
     "/google/insert",
-    passport.authenticate("google", { scope: ["profile", "email"] ,state:"register"})
+    passport.authenticate("google", { scope: ["profile", "email"]})
 );
 
 router.get("/google",
-    passport.authenticate("google", { scope: ["profile", "email"],state:"login" })
+    passport.authenticate("google", { scope: ["profile", "email"]})
 );
 
 router.get("/google/callback",
      passport.authenticate("google", { failureRedirect: "/api/auth/google/failure" }),
     (req, res) => {
-        const state = req.query.state;
+        const state = req.user.state;
         const user = req.user;
 
         console.log("STATE:", state);

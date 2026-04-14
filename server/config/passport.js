@@ -14,6 +14,7 @@ async (accessToken, refreshToken, profile, done) => {
         const google_id = profile.id;
         const nome = profile.name.familyName || "";
         const cognome = profile.name.givenName || "";
+        let state = '';
 
         // ← QUERY 1: cerca se l'utente esiste già
         const rows = await db.query(
@@ -23,8 +24,10 @@ async (accessToken, refreshToken, profile, done) => {
 
         // Utente esiste → login
         if(rows.length > 0) {
-            return done(null, { ...rows[0], nuovoUtente: false ,});
+            state = 'login'
+            return done(null, { ...rows[0], nuovoUtente: false ,state});
         }
+        else {state = 'register'}
         
 
         // Utente non esiste → registrazione
@@ -33,7 +36,8 @@ async (accessToken, refreshToken, profile, done) => {
             google_id,
             nome,
             cognome,
-            nuovoUtente: true
+            nuovoUtente: true,
+            state
         });
 
     } catch(err) {
