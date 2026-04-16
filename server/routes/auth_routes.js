@@ -3,7 +3,6 @@ const express = require("express");
 const passport = require("../config/passport");
 const router = express.Router();
 const db = require("../db/mysql");
-const { prependOnceListener } = require("../app");
 
 // ─── Login classico ──────────────────────────────────────────────────────────
 
