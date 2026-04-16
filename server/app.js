@@ -27,7 +27,6 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }))
 
-console.log("ciao")
 app.use(requestId());
 app.use(requestLogger());
 app.use(fileAccessLogger());

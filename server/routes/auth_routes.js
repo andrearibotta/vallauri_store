@@ -6,36 +6,34 @@ const db = require("../db/mysql");
 
 // ─── Login classico ──────────────────────────────────────────────────────────
 
-router.post("/login", (req, res, next) => {
+router.post("/login", async(req, res, next) => {
     try {
         const { email, password } = req.body || {};
         if (!email || !password) {
             return res.status(400).json({ error: "Email e password obbligatori", requestId: req.id });
         }
 
-        const user = utenti.find(u => u.email === email);
+        const user = await db.query(
+            "SELECT * FROM utente WHERE email = ? LIMIT 1",
+            [email]
+        )
 
         if (!user) {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
-        }
-
-        if (!user.password) {
-            return res.status(401).json({
-                error: "Account Google",
-                message: "Questo account è stato creato con Google. Usa il login Google oppure imposta una password.",
-                requestId: req.id
-            });
         }
 
         if (user.password !== password) {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
         }
 
-        req.session.regenerate((err) => {
-            if (err) return next(err);
-            req.session.user = { id: user.id, email: user.email, role: user.ruolo };
-            res.json({ ok: true, message: "Login effettuato", user: req.session.user, requestId: req.id });
-        });
+        req.session.user = {
+            id: user.id_utente,
+            nome: user.nome,
+            cognome: user.cognome,
+            idClasse : user.id_classe
+        }
+
+        return res.redirect(process.env.FRONTEND_URL);
 
     } catch (err) {
         next(err);

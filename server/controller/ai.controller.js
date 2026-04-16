@@ -7,7 +7,7 @@ const chatHistories = {};
 
 exports.chat = async (req, res) => {
   try {
-    const { message, sessionId = "default", systemPrompt } = req.body;
+    const { message, sessionId ,systemPrompt } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: "Messaggio mancante" });
