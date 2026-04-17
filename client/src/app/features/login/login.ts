@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import {Component, NgModule} from '@angular/core';
 import { Httpcalls } from '../../services/httpcalls';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'login',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -16,8 +17,7 @@ export class Login {
   }
 
   googleLogin() {
-    console.log("dentro")
-    this.http.Get("/auth/google").subscribe(
+    /*this.http.Get("/auth/google").subscribe(
       {
         next: data => {
           console.log("LOGIN FUNZIONANTE: ", data)
@@ -26,14 +26,22 @@ export class Login {
           console.log("errore: ", err);
         }
       }
-    )
+    )*/
+    try {
+      window.location.href = 'http://localhost:3000/api/auth/google';
+    } catch (err) {
+      console.log("Errore indirizzamento google")
+      console.error(err)
+    }
   }
 
-  /*login() {
-    this.http.Post('/session/login',{nome:this.nome, cognome:this.cognome}).subscribe({
+  login() {
+    console.log("password ", this.password)
+    console.log("email ", this.email)
+    this.http.Post('/auth/login',{ email: this.email, password: this.password }).subscribe({
       next:data =>{
         this.route.navigate(['/home']);
       }
     })
-  }*/
+  }
 }

@@ -13,16 +13,16 @@ router.post("/login", async(req, res, next) => {
             return res.status(400).json({ error: "Email e password obbligatori", requestId: req.id });
         }
 
-        const user = await db.query(
+        const userq = await db.query(
             "SELECT * FROM utente WHERE email = ? LIMIT 1",
             [email]
         )
-
+        const user = userq[0]
         if (!user) {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
         }
 
-        if (user.password !== password) {
+        if (user.password_hash !== password) {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
         }
 
@@ -33,7 +33,7 @@ router.post("/login", async(req, res, next) => {
             idClasse : user.id_classe
         }
 
-        return res.redirect(process.env.FRONTEND_URL);
+        return res.status(200).json({ user: user });
 
     } catch (err) {
         next(err);
