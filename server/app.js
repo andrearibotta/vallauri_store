@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const express = require("express");
 const path = require("path");   
-const session = require("express-session");
+// Rimosso express-session
 const cookieParser = require("cookie-parser");
 
 const requestId = require("./middleware/requestId");
@@ -13,9 +13,7 @@ const fileAccessLogger = require("./middleware/fileAccessLogger");
 const enforceWriteContentType = require("./middleware/enforceWriteContentType");
 const apiRouter = require("./routes/index");
 
-// ─── Passport ────────────────────────────────────────────────────────────────
-// Importa PRIMA la configurazione della strategy, poi passport
-const { passport } = require("./config/passport");
+const passport = require("./config/passport");
 
 const app = express();
 
@@ -24,36 +22,20 @@ app.use(cors({
     origin: "http://localhost:4200",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
 }))
 
-console.log("ciao")
 app.use(requestId());
 app.use(requestLogger());
 app.use(fileAccessLogger());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser()); // Fondamentale per leggere i JWT nei cookie
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET || "segreto_di_sviluppo",
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false,       // true solo con HTTPS
-            maxAge: 1000 * 60 * 60 * 24,  // 24 ore
-        },
-    })
-);
-
-// Passport deve stare DOPO express-session
+// Inizializza Passport per Google OAuth, ma senza sessioni
 app.use(passport.initialize());
-app.use(passport.session());
 
 app.use("/api", apiRouter);
 

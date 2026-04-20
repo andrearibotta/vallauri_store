@@ -1,40 +1,52 @@
 "use strict";
+const jwt = require('jsonwebtoken');
 const express = require("express");
-const { passport, utenti } = require("../config/passport");
+const passport = require("../config/passport");
 const router = express.Router();
+const db = require("../db/mysql");
+const verifyToken = require("../middleware/verifyToken");
 
 // ─── Login classico ──────────────────────────────────────────────────────────
 
-router.post("/login", (req, res, next) => {
+router.post("/login", async(req, res, next) => {
     try {
         const { email, password } = req.body || {};
+
         if (!email || !password) {
             return res.status(400).json({ error: "Email e password obbligatori", requestId: req.id });
         }
 
-        const user = utenti.find(u => u.email === email);
-
+        const userq = await db.query(
+            "SELECT * FROM utente WHERE email = ? LIMIT 1",
+            [email]
+        )
+        const user = userq[0]
         if (!user) {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
         }
 
-        if (!user.password) {
-            return res.status(401).json({
-                error: "Account Google",
-                message: "Questo account è stato creato con Google. Usa il login Google oppure imposta una password.",
-                requestId: req.id
-            });
-        }
-
-        if (user.password !== password) {
+        if (user.password_hash !== password) {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
         }
 
-        req.session.regenerate((err) => {
-            if (err) return next(err);
-            req.session.user = { id: user.id, email: user.email, role: user.ruolo };
-            res.json({ ok: true, message: "Login effettuato", user: req.session.user, requestId: req.id });
-        });
+        const payload = {
+            id: user.id_utente,
+            nome: user.nome,
+            cognome: user.cognome,
+            idClasse : user.id_classe
+        }
+
+        const secretKey = process.env.JWT_SECRET || 'segreto_di_sviluppo';
+        const token = jwt.sign(token,secretKey,{expiresIn:'1d'});
+
+        res.cookie('token_accesso',token,{
+            httpOnly:true,
+            sameSite:'lax',
+            secure:false,
+            maxAge:1000*60*60*24
+        })
+
+        return res.status(200).json({ user: payload });
 
     } catch (err) {
         next(err);
@@ -45,29 +57,39 @@ router.post("/login", (req, res, next) => {
 
 router.get(
     "/google/insert",
-    passport.authenticate("google", { scope: ["profile", "email"] })
+    passport.authenticate("google", { scope: ["profile", "email"]})
 );
 
 router.get("/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
+    passport.authenticate("google", { scope: ["profile", "email"]})
 );
 
-router.get(
-    "/google/callback",
-    passport.authenticate("google", { failureRedirect: "/api/auth/google/failure" }),
-    (req, res) => {
-        if (req.user.nuovoUtente) {
-            req.session.pendingUser = req.user;
-            return res.redirect("/scegli-password.html");
-        }
+router.get("/google/callback",
+passport.authenticate('google', { session: false }),
+(req, res) => {
+    // 1. METTI QUESTO CONSOLE.LOG PER CAPIRE IL PROBLEMA!
+    console.log("Dati arrivati da Passport:", req.user);
 
-        req.session.user = {
-            id: req.user.id,
-            email: req.user.email,
-            role: req.user.ruolo,
-            password: req.user.password,
-        };
-        res.redirect(process.env.FRONTEND_URL || "/");
+    // 2. Assicurati che il payload stia leggendo i dati giusti
+    const payload = {
+        id: req.user.id,
+        email: req.user.email,
+        nome: req.user.nome,
+        cognome: req.user.cognome,
+        isLoggedIn: true
+    };
+
+    const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
+    
+    // 3. Creiamo il token
+    const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
+
+    res.cookie('token_accesso', token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,  
+        maxAge: 1000 * 60 * 60 * 24 
+        });
     }
 );
 
@@ -77,48 +99,68 @@ router.get("/google/failure", (req, res) => {
 
 // ─── Completa registrazione ──────────────────────────────────────────────────
 
-router.post("/completa-registrazione", (req, res) => {
-    const { password } = req.body;
-    const pending = req.session.pendingUser;
+router.post("/completa-registrazione", async (req, res, next) => {
+    try {
+        const { password } = req.body;
+        
+        // 1. Recupero i dati dell'utente "in sospeso". 
+        // Se hai usato il middleware verifyToken, i dati sono in req.user
+        const pending = req.user;
 
-    if (!pending) {
-        return res.status(400).json({ error: "Nessuna registrazione in corso", requestId: req.id });
+        if (!pending) {
+            return res.status(400).json({ error: "Nessuna registrazione in corso o sessione scaduta" });
+        }
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
+        }
+
+        // 2. Inserimento nel Database
+        const result = await db.query(
+            "INSERT INTO utente (nome, cognome, email, google_id, password_hash) VALUES(?,?,?,?,?)",
+            [pending.nome, pending.cognome, pending.email, pending.id, password]
+        );
+
+        // Recuperiamo l'ID appena creato (dipende da come è fatta la tua funzione query)
+
+        // 3. CREAZIONE DEL JWT FINALE (Logghiamo l'utente subito dopo la registrazione)
+        const payload = {
+            id: pending.id,
+            email: pending.email,
+            nome: pending.nome,
+            cognome: pending.cognome,
+            isLoggedIn: true
+        };
+
+        const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
+        const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
+
+        // 4. Invio del Cookie
+        res.cookie('token_accesso', token, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false, // true in produzione con HTTPS
+            maxAge: 1000 * 60 * 60 * 24 
+        });
+
+        // 5. Risposta finale
+        res.json({ 
+            ok: true, 
+            message: "Registrazione completata e login effettuato", 
+            user: payload 
+        });
+
+    } catch (err) {
+        next(err);
     }
-
-    if (!password || password.length < 6) {
-        return res.status(400).json({ error: "Password di almeno 6 caratteri", requestId: req.id });
-    }
-
-    // Salvo l'utente in memoria
-    const nuovoUtente = {
-        id: utenti.length + 1,
-        email: pending.email,
-        google_id: pending.google_id,
-        nome: pending.nome,
-        ruolo: "user",
-        password,
-    };
-    utenti.push(nuovoUtente);
-    console.log("Nuovo utente salvato in memoria:", nuovoUtente);
-
-    // Pulisco il pending e creo la sessione
-    req.session.pendingUser = null;
-    req.session.user = {
-        id: nuovoUtente.id,
-        email: nuovoUtente.email,
-        role: nuovoUtente.ruolo,
-        password: nuovoUtente.password
-    };
-
-    res.json({ ok: true, message: "Registrazione completata" });
 });
 
 // ─── Utente corrente ─────────────────────────────────────────────────────────
 
-router.get("/me", (req, res) => {
+router.get("/me", verifyToken() ,(req, res) => {
     res.json({
         authenticated: !!(req.session && req.session.user),
-        user: req.session?.user ?? null,
+        user: req.user,
         requestId: req.id,
     });
 });
@@ -126,13 +168,8 @@ router.get("/me", (req, res) => {
 // ─── Logout ──────────────────────────────────────────────────────────────────
 
 router.post("/logout", (req, res, next) => {
-    if (!req.session.user) return res.json({ ok: true, message: "Nessuna sessione avviata" });
-
-    req.session.destroy((err) => {
-        if (err) return next(err);
-        res.clearCookie("connect.sid");
-        res.json({ ok: true, message: "Sessione distrutta", requestId: req.id });
-    });
+    res.clearCookie('token_accesso');
+    res.json({ ok: true, message: "Logout effettuato con successo", requestId: req.id });
 });
 
 module.exports = router;

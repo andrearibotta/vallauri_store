@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {Httpcalls} from '../../services/httpcalls';
 
 @Component({
   selector: 'home',
@@ -6,4 +7,14 @@ import { Component } from '@angular/core';
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home {}
+export class Home implements OnInit{
+  constructor(private http: Httpcalls) { }
+
+  ngOnInit() {
+    this.http.Get('/auth/me').subscribe({
+      next:data =>{
+        console.log(data)
+      }
+    })
+  }
+}
