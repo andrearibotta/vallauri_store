@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-import { AfterViewInit, Component } from '@angular/core';
-=======
+import { AfterViewInit } from '@angular/core';
 import {Component, NgModule} from '@angular/core';
->>>>>>> 9d831ad375cae09ecdc44afd4e3b3b9d99be6565
 import { Httpcalls } from '../../services/httpcalls';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
