@@ -1,14 +1,17 @@
 "use strict";
+const jwt = require('jsonwebtoken');
 const express = require("express");
 const passport = require("../config/passport");
 const router = express.Router();
 const db = require("../db/mysql");
+const verifyToken = require("../middleware/verifyToken");
 
 // ─── Login classico ──────────────────────────────────────────────────────────
 
 router.post("/login", async(req, res, next) => {
     try {
         const { email, password } = req.body || {};
+
         if (!email || !password) {
             return res.status(400).json({ error: "Email e password obbligatori", requestId: req.id });
         }
@@ -26,14 +29,24 @@ router.post("/login", async(req, res, next) => {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
         }
 
-        req.session.user = {
+        const payload = {
             id: user.id_utente,
             nome: user.nome,
             cognome: user.cognome,
             idClasse : user.id_classe
         }
 
-        return res.status(200).json({ user: user });
+        const secretKey = process.env.JWT_SECRET || 'segreto_di_sviluppo';
+        const token = jwt.sign(token,secretKey,{expiresIn:'1d'});
+
+        res.cookie('token_accesso',token,{
+            httpOnly:true,
+            sameSite:'lax',
+            secure:false,
+            maxAge:1000*60*60*24
+        })
+
+        return res.status(200).json({ user: payload });
 
     } catch (err) {
         next(err);
@@ -52,40 +65,31 @@ router.get("/google",
 );
 
 router.get("/google/callback",
-     passport.authenticate("google", { failureRedirect: "/api/auth/google/failure" }),
-    (req, res) => {
-        const state = req.user.state;
-        const user = req.user;
+passport.authenticate('google', { session: false }),
+(req, res) => {
+    // 1. METTI QUESTO CONSOLE.LOG PER CAPIRE IL PROBLEMA!
+    console.log("Dati arrivati da Passport:", req.user);
 
-        console.log("STATE:", state);
-        console.log("USER:", user);
+    // 2. Assicurati che il payload stia leggendo i dati giusti
+    const payload = {
+        id: req.user.id,
+        email: req.user.email,
+        nome: req.user.nome,
+        cognome: req.user.cognome,
+        isLoggedIn: true
+    };
 
-        // CASO: tentativo di LOGIN ma utente non esiste
-        if(state === "login" && user.nuovoUtente) {
-            return res.redirect(`${process.env.FRONTEND_URL}`);
-        }
+    const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
+    
+    // 3. Creiamo il token
+    const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
 
-        // CASO: tentativo di REGISTRAZIONE ma utente esiste già
-        if(state === "register" && !user.nuovoUtente) {
-            return res.redirect(`${process.env.FRONTEND_URL}`);
-        }
-
-        // CASO: LOGIN ok — utente esiste
-        if(state === "login" && !user.nuovoUtente) {
-            req.session.user = {
-                id: user.id_utente,
-                email: user.email,
-                nome: user.nome,
-                cognome: user.cognome,
-                role: "user"
-            };
-            return res.redirect(process.env.FRONTEND_URL);
-        }
-
-        // CASO: REGISTRAZIONE ok — utente nuovo
-        if(state === "register" && user.nuovoUtente) {
-            return res.redirect("/scegli-password.html");
-        }
+    res.cookie('token_accesso', token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,  
+        maxAge: 1000 * 60 * 60 * 24 
+        });
     }
 );
 
@@ -95,43 +99,68 @@ router.get("/google/failure", (req, res) => {
 
 // ─── Completa registrazione ──────────────────────────────────────────────────
 
-router.post("/completa-registrazione", async(req, res) => {
-    const { password } = req.body;
+router.post("/completa-registrazione", async (req, res, next) => {
+    try {
+        const { password } = req.body;
+        
+        // 1. Recupero i dati dell'utente "in sospeso". 
+        // Se hai usato il middleware verifyToken, i dati sono in req.user
+        const pending = req.user;
 
-    // Passport mette i dati direttamente in req.user
-    const pending = req.user;
+        if (!pending) {
+            return res.status(400).json({ error: "Nessuna registrazione in corso o sessione scaduta" });
+        }
 
-    console.log("REQ.USER:", pending);
+        if (!password || password.length < 6) {
+            return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
+        }
 
-    if(!pending) {
-        return res.status(400).json({ error: "Nessuna registrazione in corso", requestId: req.id });
+        // 2. Inserimento nel Database
+        const result = await db.query(
+            "INSERT INTO utente (nome, cognome, email, google_id, password_hash) VALUES(?,?,?,?,?)",
+            [pending.nome, pending.cognome, pending.email, pending.id, password]
+        );
+
+        // Recuperiamo l'ID appena creato (dipende da come è fatta la tua funzione query)
+
+        // 3. CREAZIONE DEL JWT FINALE (Logghiamo l'utente subito dopo la registrazione)
+        const payload = {
+            id: pending.id,
+            email: pending.email,
+            nome: pending.nome,
+            cognome: pending.cognome,
+            isLoggedIn: true
+        };
+
+        const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
+        const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
+
+        // 4. Invio del Cookie
+        res.cookie('token_accesso', token, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false, // true in produzione con HTTPS
+            maxAge: 1000 * 60 * 60 * 24 
+        });
+
+        // 5. Risposta finale
+        res.json({ 
+            ok: true, 
+            message: "Registrazione completata e login effettuato", 
+            user: payload 
+        });
+
+    } catch (err) {
+        next(err);
     }
-
-    if(!password || password.length < 6) {
-        return res.status(400).json({ error: "Password di almeno 6 caratteri", requestId: req.id });
-    }
-
-    const rows = await db.query(
-        "INSERT INTO utente (nome,cognome,email,google_id,password_hash) VALUES(?,?,?,?,?)",
-        [pending.nome,pending.cognome,pending.email,pending.google_id,password]
-    )
-
-    req.session.user = {
-        id: pending.id,
-        email: pending.email,
-        role: pending.ruolo,
-        password: pending.password
-    };
-
-    res.json({ ok: true, message: "Registrazione completata" });
 });
 
 // ─── Utente corrente ─────────────────────────────────────────────────────────
 
-router.get("/me", (req, res) => {
+router.get("/me", verifyToken() ,(req, res) => {
     res.json({
         authenticated: !!(req.session && req.session.user),
-        user: req.session?.user ?? null,
+        user: req.user,
         requestId: req.id,
     });
 });
@@ -139,13 +168,8 @@ router.get("/me", (req, res) => {
 // ─── Logout ──────────────────────────────────────────────────────────────────
 
 router.post("/logout", (req, res, next) => {
-    if (!req.session.user) return res.json({ ok: true, message: "Nessuna sessione avviata" });
-
-    req.session.destroy((err) => {
-        if (err) return next(err);
-        res.clearCookie("connect.sid");
-        res.json({ ok: true, message: "Sessione distrutta", requestId: req.id });
-    });
+    res.clearCookie('token_accesso');
+    res.json({ ok: true, message: "Logout effettuato con successo", requestId: req.id });
 });
 
 module.exports = router;

@@ -45,12 +45,5 @@ async (accessToken, refreshToken, profile, done) => {
     }
 }));
 
-passport.serializeUser((user, done) => {
-    done(null, JSON.stringify(user));
-});
-
-passport.deserializeUser((data, done) => {
-    done(null, JSON.parse(data));
-});
 
 module.exports = passport;

@@ -8,7 +8,7 @@ const dbRoutes = require("./db_routes");
 const privateRoutes = require("./private_routes");
 const aiRoutes = require("./ai_router");
 
-const requireSession = require("../middleware/requireSessionAuth");
+const requireSession = require("../middleware/verifyToken");
 
 const router = express.Router();
 
