@@ -12,8 +12,8 @@ async (accessToken, refreshToken, profile, done) => {
     try {
         const email = profile.emails[0].value;
         const google_id = profile.id;
-        const nome = profile.name.familyName || "";
-        const cognome = profile.name.givenName || "";
+        const nome = profile.name.givenName || "";
+        const cognome = profile.name.familyName || "";
         let state = '';
 
         // ← QUERY 1: cerca se l'utente esiste già

@@ -7,7 +7,6 @@ const db = require("../db/mysql");
 const verifyToken = require("../middleware/verifyToken");
 
 // ─── Login classico ──────────────────────────────────────────────────────────
-
 router.post("/login", async(req, res, next) => {
     try {
         const { email, password } = req.body || {};
@@ -37,7 +36,7 @@ router.post("/login", async(req, res, next) => {
         }
 
         const secretKey = process.env.JWT_SECRET || 'segreto_di_sviluppo';
-        const token = jwt.sign(token,secretKey,{expiresIn:'1d'});
+        const token = jwt.sign(payload, secretKey, {expiresIn:'1d'});
 
         res.cookie('token_accesso',token,{
             httpOnly:true,
@@ -76,7 +75,7 @@ passport.authenticate('google', { session: false }),
         email: req.user.email,
         nome: req.user.nome,
         cognome: req.user.cognome,
-        isLoggedIn: true
+        google_id:req.user.google_id
     };
 
     const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
@@ -90,46 +89,41 @@ passport.authenticate('google', { session: false }),
         secure: false,  
         maxAge: 1000 * 60 * 60 * 24 
         });
+
+        if(req.user.state === "register") {
+            let data = {};
+            res.render("index", data)
+        }
+        else
+            res.redirect("http://localhost:4200")
     }
+
+
 );
 
-router.get("/google/failure", (req, res) => {
+router.get("/google/failure",(req, res) => {
     res.status(401).json({ error: "Autenticazione Google fallita", requestId: req.id });
 });
 
 // ─── Completa registrazione ──────────────────────────────────────────────────
 
-router.post("/completa-registrazione", async (req, res, next) => {
+router.post("/completa-registrazione",verifyToken(), async (req, res, next) => {
     try {
         const { password } = req.body;
-        
-        // 1. Recupero i dati dell'utente "in sospeso". 
+        // 1. Recupero i dati dell'utente "in sospeso".
         // Se hai usato il middleware verifyToken, i dati sono in req.user
-        const pending = req.user;
-
-        if (!pending) {
-            return res.status(400).json({ error: "Nessuna registrazione in corso o sessione scaduta" });
-        }
-
-        if (!password || password.length < 6) {
-            return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
-        }
-
+        console.log(req.user)
         // 2. Inserimento nel Database
-        const result = await db.query(
-            "INSERT INTO utente (nome, cognome, email, google_id, password_hash) VALUES(?,?,?,?,?)",
-            [pending.nome, pending.cognome, pending.email, pending.id, password]
-        );
 
         // Recuperiamo l'ID appena creato (dipende da come è fatta la tua funzione query)
 
         // 3. CREAZIONE DEL JWT FINALE (Logghiamo l'utente subito dopo la registrazione)
         const payload = {
-            id: pending.id,
-            email: pending.email,
-            nome: pending.nome,
-            cognome: pending.cognome,
-            isLoggedIn: true
+            email: req.user.email,
+            nome: req.user.nome,
+            cognome: req.user.cognome,
+            password: password,
+            google_id: req.user.google_id
         };
 
         const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
@@ -150,6 +144,25 @@ router.post("/completa-registrazione", async (req, res, next) => {
             user: payload 
         });
 
+        const pending = payload;
+
+        console.log(pending)
+
+        if (!pending) {
+            return res.status(400).json({ error: "Nessuna registrazione in corso o sessione scaduta" });
+        }
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
+        }
+        console.log(pending.nome);
+
+        const result = await db.query(
+            "INSERT INTO utente (nome, cognome, email, google_id, password_hash) VALUES(?,?,?,?,?)",
+            [pending.nome, pending.cognome, pending.email, pending.google_id,password]
+        );
+
+        res.redirect("http://localhost:4200")
     } catch (err) {
         next(err);
     }
@@ -159,7 +172,7 @@ router.post("/completa-registrazione", async (req, res, next) => {
 
 router.get("/me", verifyToken() ,(req, res) => {
     res.json({
-        authenticated: !!(req.session && req.session.user),
+        authenticated: true,
         user: req.user,
         requestId: req.id,
     });

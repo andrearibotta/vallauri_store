@@ -25,6 +25,9 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"],
 }))
 
+app.set("view engine", "pug");
+app.set("views", path.join(process.cwd(), "views"))
+
 app.use(requestId());
 app.use(requestLogger());
 app.use(fileAccessLogger());

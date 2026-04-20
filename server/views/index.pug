@@ -1,150 +1,157 @@
 doctype html
 html(lang="it")
     head
-        meta(charset="utf-8")
-        meta(name="viewport" content="width=device-width, initial-scale=1")
-        title= title
-        link(rel="stylesheet" href="/styles.css")
-    body(class="theme-" + (uiTheme || "dark"))
-        .container
-            include ./partials/header
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Scegli una password
+        style.
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: 'Segoe UI', sans-serif;
+                background: #f0f2f5;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+            }
+            .card {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+                width: 100%;
+                max-width: 400px;
+            }
+            h1 {
+                font-size: 22px;
+                margin-bottom: 8px;
+                color: #1a1a1a;
+            }
+            p {
+                color: #666;
+                font-size: 14px;
+                margin-bottom: 28px;
+            }
+            label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 6px;
+            }
+            input {
+                width: 100%;
+                padding: 10px 14px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                font-size: 15px;
+                margin-bottom: 16px;
+                outline: none;
+                transition: border 0.2s;
+            }
+            input:focus {
+                border-color: #4285f4;
+            }
+            button {
+                width: 100%;
+                padding: 12px;
+                background: #4285f4;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            button:hover {
+                background: #3367d6;
+            }
+            .error {
+                background: #fdecea;
+                color: #c62828;
+                padding: 10px 14px;
+                border-radius: 8px;
+                font-size: 13px;
+                margin-bottom: 16px;
+                display: none;
+            }
+            .success {
+                background: #e8f5e9;
+                color: #2e7d32;
+                padding: 10px 14px;
+                border-radius: 8px;
+                font-size: 13px;
+                margin-bottom: 16px;
+                display: none;
+            }
 
-            p.muted
-                | Questa pagina è renderizzata con
-                strong Pug
-                | tramite
-                code res.render()
-                | . I form testano i parser integrati
-                strong express.json()
-                | ,
-                strong express.urlencoded()
-                | ,
-                strong express.text()
-                | , più route MySQL e middleware di sessione/file logger.
+    body
+        .card
+            h1 Scegli una password
+            p Stai accedendo per la prima volta con Google. Scegli una password per poter accedere anche manualmente in futuro.
 
-            // Esempio esplicito di ciclo Pug (each) su un array passato dal server
-            section.card
-                h2 Esempio Pug: ciclo each su endpoint di prova
-                p.muted Elenco generato nel template tramite variabile passata da server.js
-                ul.endpoint-list
-                    each item in exampleEndpoints
-                        li
-                            span.badge= item.method
-                            |
-                            code= item.path
-                            if item.note
-                                | - #{item.note}
+            #errore.error
+            #successo.success
 
-            // Esempio esplicito di selezione Pug (if/else if/else)
-            section.card
-                h2 Esempio Pug: Selezione if / else if / else
-                if sessionUser
-                    p
-                        | Stato UI: utente autenticato come
-                        strong= sessionUser.username
-                        | . Puoi usare subito i pulsanti dall'area privata
-                else if demoMode
-                    p.muted
-                        | Stato UI: modalità demo attiva. Non sei autenticato, ma puoi fare login con demo / demo123.
-                else
-                    p.muted Stato UI: nessuna sessione e modalità demo disattivata.
+            label(for="password") Password
+            input#password(type="password", placeholder="Minimo 6 caratteri")
 
-            .toolbar
-                span.badge Sessione:
-                span#sessionPreview.badge (non autenticato)
-                span.badge Tema:
-                span#themePreview.badge= uiTheme || "dark"
-                button#btnThemeLight.theme-toggle(type="button" data-theme="light") Tema chiaro
-                button#btnThemeDark.theme-toggle(type="button" data-theme="dark") Tema scuro
-                button#btnClearOutput(type="button") Pulisci output
-                button#btnLogout(type="button") POST /api/auth/logout
+            label(for="conferma") Conferma password
+            input#conferma(type="password", placeholder="Ripeti la password")
 
-            .grid
-                section.card
-                    h2 1) Test rapidi
-                    .toolbar
-                        button#btnPing(type="button") GET /api/ping
-                        button#btnDbHealth(type="button") GET /api/db/health
-                        button#btnLoadItems(type="button") GET /api/db/items
-                        button#btnBoom(type="button") GET /api/boom (errore)
-                    p.muted
-                        small.code /api/db/* richiede MySQL configurato e script SQL eseguiti.
+            button(onclick="inviaPassword()") Conferma e accedi
 
-                section.card
-                    h2 2) Login sessione (JSON + cookie)
-                    form#loginForm
-                        label
-                            | Username
-                            input(name="username", value="demo", required)
-                        label
-                            | Password
-                            input(name="password", value="demo123" required)
-                        button(type="submit") POST /api/auth/login
-                    .toolbar(style="margin-top:10px;")
-                        button#btnAuthMe(type="button") GET /api/auth/me
-                        button#btnWhoAmI(type="button") GET /api/private/whoami
-                        button#btnStats(type="button") GET /api/private/db/stats
+        script.
+            async function inviaPassword() {
+                const password = document.getElementById("password").value;
+                const conferma = document.getElementById("conferma").value;
+                const erroreDiv = document.getElementById("errore");
+                const successoDiv = document.getElementById("successo");
 
-                section.card
-                    h2 3) Inserisci item MySQL (protetto, JSON)
-                    form#addItemForm
-                        .row3
-                            label
-                                | Nome
-                                input(name="name" value="Mouse USB" required)
-                            label
-                                | Categoria
-                                input(name="category" value="Periferiche" required)
-                            label
-                                | Quantità
-                                input(name="quantity" type="number" min="0" value="4" required)
-                        button(type="submit") POST /api/private/db/items
+                erroreDiv.style.display = "none";
+                successoDiv.style.display = "none";
 
-                section.card
-                    h2 4) Ricerca MySQL (form-urlencoded)
-                    form#searchForm
-                        label
-                            | Termine di ricerca (name LIKE %term%)
-                            input(name="term" value="PC")
-                        button(type="submit") POST /api/db/search
+                if (!password || password.length < 6) {
+                    erroreDiv.textContent = "La password deve essere di almeno 6 caratteri.";
+                    erroreDiv.style.display = "block";
+                    return;
+                }
 
-                section.card
-                    h2 5) Echo JSON (express.json)
-                    form#jsonEchoForm
-                        label
-                            | Titolo
-                            input(name="titolo" value="Esercitazione middleware")
-                        label
-                            | Difficoltà
-                            input(name="difficolta" value="intermedia")
-                        label
-                            input(name="attivo" type="checkbox" checked)
-                            | Attivo
-                        button(type="submit") POST /api/echo-json
+                if (password !== conferma) {
+                    erroreDiv.textContent = "Le password non coincidono.";
+                    erroreDiv.style.display = "block";
+                    return;
+                }
 
-                section.card
-                    h2 6) Echo form-urlencoded (express.urlencoded)
-                    form#formEchoForm
-                        label
-                            | Nome
-                            input(name="nome" value="Marcello")
-                        label
-                            | Classe
-                            input(name="classe" value="5C")
-                        button(type="submit") POST /api/echo-form
+                try {
+                    const res = await fetch("http://localhost:3000/api/auth/completa-registrazione", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ password })
+                    });
 
-                section.card
-                    h2 7) Echo testo (express.text)
-                    form#textEchoForm
-                        label
-                            | Testo
-                            textarea#plainTextInput Questo body viene letto come stringa tramite express.text()
-                        button(type="submit") POST /api/echo-text
+                    const data = await res.json();
 
-                section.card
-                    h2 Output risposta
-                    pre#output
+                    if (!res.ok) {
+                        erroreDiv.textContent = data.error || "Errore durante la registrazione.";
+                        erroreDiv.style.display = "block";
+                        return;
+                    }
 
-            include ./partials/footer
+                    successoDiv.textContent = "Registrazione completata! Reindirizzamento in corso...";
+                    successoDiv.style.display = "block";
 
-        script(src="/app.js")
+                    setTimeout(() => {
+                        window.location.href = "http://localhost:4200";
+                    }, 1000);
+
+                } catch (err) {
+                    erroreDiv.textContent = "Errore di rete, riprova.";
+                    erroreDiv.style.display = "block";
+                }
+            }
