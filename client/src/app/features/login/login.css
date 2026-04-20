@@ -275,6 +275,81 @@
 
 .login-back:hover { color: #00916f; }
 
+.login-select {
+  border-left: none !important;
+  appearance: auto;
+  cursor: pointer;
+}
+
+[data-theme="dark"] .login-select {
+  background-color: #162420;
+  color: #e8f5f2;
+}
+
+[data-theme="dark"] .login-select option {
+  background-color: #162420;
+  color: #e8f5f2;
+}
+
+.login-select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  border-left: none !important;
+}
+
+.login-select:focus {
+  border-color: #00b398 !important;
+  background: #fff;
+  box-shadow: none;
+}
+
+/* Freccia custom al posto di quella del browser */
+.login-input-group {
+  position: relative;
+}
+
+.login-input-group:has(select)::after {
+  content: '\F282';
+  font-family: 'bootstrap-icons';
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ab5b0;
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 5;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.login-input-group:has(select:focus)::after {
+  transform: translateY(-50%) rotate(180deg);
+  color: #00b398;
+}
+
+/* Icona sinistra verde quando select è aperta */
+.login-input-group:has(select:focus) .login-input-icon {
+  color: #009e86;
+  border-color: #00b398 !important;
+}
+
+/* Dark mode */
+[data-theme="dark"] .login-select {
+  background: #162420;
+  border-color: #224040;
+  color: #e8f5f2;
+}
+
+[data-theme="dark"] .login-select:focus {
+  background: #1a2e2b;
+}
+
+[data-theme="dark"] .login-select option {
+  background: #162420;
+  color: #e8f5f2;
+}
+
 /* Responsive */
 @media (max-width: 576px) {
   .login-card {
@@ -282,3 +357,4 @@
     border-radius: 20px;
   }
 }
+
