@@ -22,6 +22,13 @@ async (accessToken, refreshToken, profile, done) => {
             [google_id, email]
         );
 
+        if(rows[0].google_id === null){
+            const result = await db.query(
+                "INSERT INTO utente (google_id) VALUES (?)",
+                [google_id]
+            )
+        }
+
         // Utente esiste → login
         if(rows.length > 0) {
             state = 'login'
