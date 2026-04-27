@@ -33,7 +33,7 @@ router.post("/login", async(req, res, next) => {
 
         const payload = {
             id: user.id_utente,
-            email:user.email,
+            email: user.email,
             nome: user.nome,
             cognome: user.cognome,
             idClasse : user.id_classe
@@ -59,9 +59,9 @@ router.post("/login", async(req, res, next) => {
 router.post("/register",async(req,res,next) =>{
     try{
 
-        const {nome,cognome,email,password} = req.body.data;
+        const {nome,cognome,email,password,idClasse} = req.body.data;
     
-        if(!nome || !cognome || !email || !password){
+        if(!nome || !cognome || !email || !password || !idClasse){
             return res.status(400).json({err:'Dati Mancanti'});
         }
         const rows = await db.query(
@@ -74,8 +74,8 @@ router.post("/register",async(req,res,next) =>{
         const hashed = passwordHash(password)
     
         const result = await db.query(
-            "INSERT INTO utente (nome, cognome, email,password_hash) VALUES(?,?,?,?)",
-            [nome, cognome, email,hashed]
+            "INSERT INTO utente (nome, cognome, email,password_hash,id_classe ) VALUES(?,?,?,?,?)",
+            [nome, cognome, email,hashed,idClasse]
         )
     
         return res.status(200).json({result:result});
