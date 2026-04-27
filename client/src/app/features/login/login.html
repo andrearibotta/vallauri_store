@@ -82,7 +82,7 @@
                   <span class="input-group-text login-input-icon">
                     <i class="bi bi-person"></i>
                   </span>
-                  <input type="text" id="regNome" class="form-control login-input" placeholder="Mario"/>
+                  <input type="text" id="regNome" class="form-control login-input" placeholder="Mario" [(ngModel)]="rnome"/>
                 </div>
               </div>
               <div class="col-6">
@@ -91,7 +91,7 @@
                   <span class="input-group-text login-input-icon">
                     <i class="bi bi-person"></i>
                   </span>
-                  <input type="text" id="regCognome" class="form-control login-input" placeholder="Rossi"/>
+                  <input type="text" id="regCognome" class="form-control login-input" placeholder="Rossi" [(ngModel)]="rcognome"/>
                 </div>
               </div>
             </div>
@@ -103,7 +103,7 @@
                   <i class="bi bi-envelope"></i>
                 </span>
                 <input type="email" id="regEmail" class="form-control login-input"
-                       placeholder="n.cognome.matr@vallauri.edu"/>
+                       placeholder="n.cognome.matr@vallauri.edu" [(ngModel)]="remail"/>
               </div>
             </div>
 
@@ -118,6 +118,7 @@
                   id="regPassword"
                   class="form-control login-input"
                   placeholder="Scegli una password"
+                  [(ngModel)]="rpwd"
                 />
                 <button class="input-group-text login-input-icon btn-toggle-pw" type="button">
                   <i class="bi bi-eye"></i>
@@ -125,7 +126,7 @@
               </div>
             </div>
 
-            <div class="row g-2 mb-4">
+            <!--<div class="row g-2 mb-4">
               <div class="col-7">
                 <label class="form-label login-label" for="regIndirizzo">Indirizzo</label>
                 <div class="input-group login-input-group">
@@ -161,9 +162,9 @@
                   </select>
                 </div>
               </div>
-            </div>
+            </div>-->
 
-            <button class="btn btn-login w-100">
+            <button class="btn btn-login w-100" (click)="registrati()">
               <i class="bi bi-person-plus me-2"></i>Crea il mio account
             </button>
 

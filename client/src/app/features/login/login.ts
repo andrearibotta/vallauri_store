@@ -13,7 +13,12 @@ import { FormsModule } from '@angular/forms';
 export class Login implements AfterViewInit {
   email: string = "";
   password: string = "";
-  registrati: boolean = false;
+  //registrati: boolean = false;
+
+  rpwd: string = "";
+  remail: string = "";
+  rnome: string = "";
+  rcognome: string = "";
 
   ngAfterViewInit(): void {
     document.getElementById('tabLogin')?.addEventListener('click', () => this.showLogin());
@@ -26,7 +31,7 @@ export class Login implements AfterViewInit {
     document.getElementById('tabLogin')!.classList.add('active');
     document.getElementById('tabRegister')!.classList.remove('active');
     document.getElementById('cardTitle')!.textContent = 'Bentornato!';
-    document.getElementById('cardSubtitle')!.textContent = 'Accedi a ScambiAmo con la tua email scolastica';
+    document.getElementById('cardSubtitle')!.textContent = 'Accedi a vallauristore con la tua email scolastica';
   }
 
   showRegister(): void {
@@ -35,7 +40,7 @@ export class Login implements AfterViewInit {
     document.getElementById('tabLogin')!.classList.remove('active');
     document.getElementById('tabRegister')!.classList.add('active');
     document.getElementById('cardTitle')!.textContent = 'Crea account';
-    document.getElementById('cardSubtitle')!.textContent = 'Unisciti a ScambiAmo gratuitamente';
+    document.getElementById('cardSubtitle')!.textContent = 'Unisciti a vallauristore gratuitamente';
   }
 
   constructor(private http: Httpcalls, private route: Router) {
@@ -66,6 +71,25 @@ export class Login implements AfterViewInit {
     this.http.Post('/auth/login',{ email: this.email, password: this.password }).subscribe({
       next:data =>{
         this.route.navigate(['/home']);
+      }
+    })
+  }
+
+  registrati() {
+    let data: any = {}
+    data.nome = this.rnome;
+    data.cognome = this.rcognome;
+    data.email = this.remail;
+    data.password = this.rpwd;
+
+    console.log(data)
+    this.http.Post('/auth/register',{ data }).subscribe({
+      next:data =>{
+        this.route.navigate(['/home']);
+        console.log("REGISTRATO CON SUCCESSO")
+      },
+      error: err => {
+        console.error(err)
       }
     })
   }
