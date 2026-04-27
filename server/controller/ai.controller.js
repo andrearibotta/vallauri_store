@@ -124,12 +124,7 @@ exports.chat = async (req, res) => {
     chatHistories[sessionId].push({ role: "assistant", content: reply });
 
     return res.json({
-      reply,
-      sessionId,
-      keywordSearched: keyword,
-      productsFound: productsList.length,
       products: productsList,
-      usage: completion.usage,
     });
 
   } catch (error) {
