@@ -3,8 +3,8 @@ USE vallauristore;
 
 CREATE TABLE classe (
     id_classe INT AUTO_INCREMENT PRIMARY KEY,
-    classe VARCHAR(10) NOT NULL, -- Es: "5B"
-    indirizzo VARCHAR(50) NOT NULL -- Es: "Informatica"
+    classe VARCHAR(10) NOT NULL,
+    indirizzo VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE categorie (
