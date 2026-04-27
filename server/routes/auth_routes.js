@@ -58,7 +58,7 @@ router.post("/login", async(req, res, next) => {
 router.post("/register",async(req,res,next) =>{
     try{
 
-        const {nome,cognome,email,password} = req.body;
+        const {nome,cognome,email,password} = req.body.data;
     
         if(!nome || !cognome || !email || !password){
             return res.status(400).json({err:'Dati Mancanti'});

@@ -2,9 +2,18 @@
 "use strict";
 const express = require("express");
 const router = express.Router();
+const db = require('../db/mysql');
 
 router.get("/ping",(req,res) =>{
-    res.json({ok:true,reqestId:req.id})
+    return res.status(200).json({ok:ok});
+})
+
+router.get("/getAllClassi",async(req,res) =>{
+    const rows = await db.query(
+        "SELECT * FROM classe"
+    )
+
+    return res.status(200).json({classe:rows});
 })
 
 router.get("/test-sessione",(req,res) =>{
