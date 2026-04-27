@@ -26,6 +26,10 @@ async (accessToken, refreshToken, profile, done) => {
             const result = await db.query(
                 "UPDATE utente SET google_id = ? WHERE email = ?",
                 [google_id,email]
+
+
+
+                
             )
         }
 
