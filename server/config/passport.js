@@ -24,7 +24,7 @@ async (accessToken, refreshToken, profile, done) => {
 
         if(rows[0].google_id === null){
             const result = await db.query(
-                "UPDATE utente SET google id = ? WHERE email = ?",
+                "UPDATE utente SET google_id = ? WHERE email = ?",
                 [google_id,email]
             )
         }
