@@ -11,7 +11,7 @@ function createPoolFromMysql(){
         database: process.env.MYSQL_DATABASE || "vallauristore",
         waitForConnections: true,
         connectionLimit: 10,
-        charset: "utf8mb4"
+        charset: "utf8mb4",
     });
 
     return pool;

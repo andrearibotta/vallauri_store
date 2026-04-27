@@ -5,6 +5,7 @@ const passport = require("../config/passport");
 const router = express.Router();
 const db = require("../db/mysql");
 const verifyToken = require("../middleware/verifyToken");
+const passwordHash = require('../middleware/passwordHash');
 
 // ─── Login classico ──────────────────────────────────────────────────────────
 router.post("/login", async(req, res, next) => {
@@ -24,7 +25,9 @@ router.post("/login", async(req, res, next) => {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
         }
 
-        if (user.password_hash !== password) {
+        const hashed = passwordHash(password);
+
+        if (user.password_hash !== hashed) {
             return res.status(401).json({ error: "Credenziali non valide", requestId: req.id });
         }
 
@@ -51,6 +54,35 @@ router.post("/login", async(req, res, next) => {
         next(err);
     }
 });
+
+router.post("/register",async(req,res,next) =>{
+    try{
+
+        const {nome,cognome,email,password} = req.body;
+    
+        if(!nome || !cognome || !email || !password){
+            return res.status(400).json({err:'Dati Mancanti'});
+        }
+        const rows = await db.query(
+           "SELECT * FROM utente WHERE email = ? LIMIT 1",
+            [email]
+        )
+        if(rows.length !== 0){
+            return res.status(400).json({err:'Email gia registrata'})
+        }
+        const hashed = passwordHash(password)
+    
+        const result = await db.query(
+            "INSERT INTO utente (nome, cognome, email,password_hash) VALUES(?,?,?,?)",
+            [nome, cognome, email,hashed]
+        )
+    
+        return res.status(200).json({result:result});
+    }
+    catch(err){
+        next(err);
+    }
+})
 
 // ─── Google OAuth ────────────────────────────────────────────────────────────
 
@@ -95,7 +127,7 @@ passport.authenticate('google', { session: false }),
             res.render("index", data)
         }
         else
-            res.redirect("http://localhost:4200")
+            res.redirect(process.env.FRONTEND_URL)
     }
 
 
@@ -107,62 +139,51 @@ router.get("/google/failure",(req, res) => {
 
 // ─── Completa registrazione ──────────────────────────────────────────────────
 
-router.post("/completa-registrazione",verifyToken(), async (req, res, next) => {
+router.post("/completa-registrazione", verifyToken(), async (req, res, next) => {
     try {
         const { password } = req.body;
-        // 1. Recupero i dati dell'utente "in sospeso".
-        // Se hai usato il middleware verifyToken, i dati sono in req.user
-        console.log(req.user)
-        // 2. Inserimento nel Database
 
-        // Recuperiamo l'ID appena creato (dipende da come è fatta la tua funzione query)
+        // ✅ Controlli PRIMA di fare qualsiasi cosa
+        if (!password || password.length < 6) {
+            return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
+        }
 
-        // 3. CREAZIONE DEL JWT FINALE (Logghiamo l'utente subito dopo la registrazione)
+        const pending = req.user;
+        if (!pending) {
+            return res.status(400).json({ error: "Nessuna registrazione in corso o sessione scaduta" });
+        }
+
+        // ✅ Hash della password fatto correttamente
+        const hashed = passwordHash(password);
+
+        // ✅ Query al DB con la password hashata
+        const result = await db.query(
+            "INSERT INTO utente (nome, cognome, email, google_id, password_hash) VALUES(?,?,?,?,?)",
+            [pending.nome, pending.cognome, pending.email, pending.google_id, hashed]
+        );
+
+        // ✅ JWT creato DOPO l'inserimento
         const payload = {
-            email: req.user.email,
-            nome: req.user.nome,
-            cognome: req.user.cognome,
-            password: password,
-            google_id: req.user.google_id
+            id: result.insertId,
+            email: pending.email,
+            nome: pending.nome,
+            cognome: pending.cognome,
+            google_id: pending.google_id
         };
 
         const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
         const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
 
-        // 4. Invio del Cookie
         res.cookie('token_accesso', token, {
             httpOnly: true,
             sameSite: "lax",
-            secure: false, // true in produzione con HTTPS
-            maxAge: 1000 * 60 * 60 * 24 
+            secure: false,
+            maxAge: 1000 * 60 * 60 * 24
         });
 
-        // 5. Risposta finale
-        res.json({ 
-            ok: true, 
-            message: "Registrazione completata e login effettuato", 
-            user: payload 
-        });
+        // ✅ Una sola risposta, alla fine
+        return res.json({ ok: true, message: "Registrazione completata", user: payload });
 
-        const pending = payload;
-
-        console.log(pending)
-
-        if (!pending) {
-            return res.status(400).json({ error: "Nessuna registrazione in corso o sessione scaduta" });
-        }
-
-        if (!password || password.length < 6) {
-            return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
-        }
-        console.log(pending.nome);
-
-        const result = await db.query(
-            "INSERT INTO utente (nome, cognome, email, google_id, password_hash) VALUES(?,?,?,?,?)",
-            [pending.nome, pending.cognome, pending.email, pending.google_id,password]
-        );
-
-        res.redirect("http://localhost:4200")
     } catch (err) {
         next(err);
     }
