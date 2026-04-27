@@ -1,4 +1,4 @@
-import { AfterViewInit } from '@angular/core';
+import {AfterViewInit, OnInit} from '@angular/core';
 import {Component, NgModule} from '@angular/core';
 import { Httpcalls } from '../../services/httpcalls';
 import { Router } from '@angular/router';
@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class Login implements AfterViewInit {
+export class Login implements AfterViewInit, OnInit {
   email: string = "";
   password: string = "";
   //registrati: boolean = false;
@@ -19,6 +19,31 @@ export class Login implements AfterViewInit {
   remail: string = "";
   rnome: string = "";
   rcognome: string = "";
+
+  classi: any[] = [];
+  indirizzi: string[] = [];
+
+  indselezionato: boolean = false;
+  strind: string = "";
+  classiperind: any[] = [];
+
+  classesel: string = "";
+
+  ngOnInit() {
+    this.http.Get('/public/getAllClassi').subscribe({
+      next:data =>{
+        this.classi = data.classe;
+
+        this.indirizzi = this.classi
+          .map(item => item.indirizzo)
+          .filter((indirizzo, indice, array) => array.indexOf(indirizzo) === indice);
+
+        console.log("classi:", data)
+
+        console.log("indirizzi:", this.indirizzi)
+      }
+    })
+  }
 
   ngAfterViewInit(): void {
     document.getElementById('tabLogin')?.addEventListener('click', () => this.showLogin());
@@ -76,11 +101,13 @@ export class Login implements AfterViewInit {
   }
 
   registrati() {
+    //console.log(this.classesel)
     let data: any = {}
     data.nome = this.rnome;
     data.cognome = this.rcognome;
     data.email = this.remail;
     data.password = this.rpwd;
+    data.idClasse = this.classesel;
 
     console.log(data)
     this.http.Post('/auth/register',{ data }).subscribe({
@@ -92,5 +119,14 @@ export class Login implements AfterViewInit {
         console.error(err)
       }
     })
+  }
+
+  selind(){
+    this.indselezionato = true;
+    console.log(this.strind)
+
+    this.classiperind = this.classi.filter(item => item.indirizzo === this.strind);
+
+    console.log("classiperind: ", this.classiperind)
   }
 }

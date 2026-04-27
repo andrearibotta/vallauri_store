@@ -126,23 +126,18 @@
               </div>
             </div>
 
-            <!--<div class="row g-2 mb-4">
+            <div class="row g-2 mb-4">
               <div class="col-7">
                 <label class="form-label login-label" for="regIndirizzo">Indirizzo</label>
                 <div class="input-group login-input-group">
                   <span class="input-group-text login-input-icon">
                     <i class="bi bi-mortarboard"></i>
                   </span>
-                  <select id="regIndirizzo" class="form-select login-input login-select">
+                  <select id="regIndirizzo" class="form-select login-input login-select" (change)="selind()" [(ngModel)]="strind">
                     <option value="" disabled selected>Scegli…</option>
-                    <option>Liceo Scientifico</option>
-                    <option>Liceo Classico</option>
-                    <option>Liceo Linguistico</option>
-                    <option>Liceo Artistico</option>
-                    <option>ITI Informatica</option>
-                    <option>ITI Elettronica</option>
-                    <option>ITIS Meccanica</option>
-                    <option>Istituto Professionale</option>
+                    @for(i of indirizzi; track $index) {
+                      <option>{{ i }}</option>
+                    }
                   </select>
                 </div>
               </div>
@@ -152,17 +147,15 @@
                   <span class="input-group-text login-input-icon">
                     <i class="bi bi-hash"></i>
                   </span>
-                  <select id="regClasse" class="form-select login-input login-select">
+                  <select id="regClasse" class="form-select login-input login-select" [disabled]="!indselezionato" [(ngModel)]="classesel">
                     <option value="" disabled selected>Anno</option>
-                    <option>1ª</option>
-                    <option>2ª</option>
-                    <option>3ª</option>
-                    <option>4ª</option>
-                    <option>5ª</option>
+                    @for(cl of classiperind; track $index) {
+                      <option [value]="cl.id_classe">{{cl.classe}}</option>
+                    }
                   </select>
                 </div>
               </div>
-            </div>-->
+            </div>
 
             <button class="btn btn-login w-100" (click)="registrati()">
               <i class="bi bi-person-plus me-2"></i>Crea il mio account

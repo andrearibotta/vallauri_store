@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import {Controllologin} from '../../services/controllologin';
 
 @Component({
   selector: 'navbar',
@@ -7,6 +8,13 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
-export class Navbar {
-
+export class Navbar implements OnInit{
+  loggato: boolean = false;
+  constructor(private cl: Controllologin) {
+  }
+  ngOnInit() {
+    this.cl.currentMessage.subscribe(msg => this.loggato = msg)
+    console.log("loggato dalla navbar")
+    console.log("cm: ", this.loggato)
+  }
 }
