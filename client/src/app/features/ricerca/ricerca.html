@@ -1,0 +1,167 @@
+<!-- ===== PAGINA RICERCA ===== -->
+<div class="search-page">
+
+  <!-- HEADER RICERCA -->
+  <section class="search-header py-4">
+    <div class="container">
+
+      <!-- Barra di ricerca grande -->
+      <div class="search-bar-wrap mb-3">
+        <div class="input-group search-bar-group">
+          <span class="input-group-text search-bar-icon">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control search-bar-input"
+            [value]="searchQuery"
+            placeholder="Cerca prodotti…"
+          />
+          <button class="btn search-bar-btn">
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Info risultati + ordinamento -->
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="search-results-info">
+          <span class="results-count">{{ results.length }} risultati</span>
+          <span class="results-query"> per "<strong>{{ searchQuery }}</strong>"</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="sort-label">Ordina:</span>
+          <div class="sort-tabs">
+            <button class="sort-tab active">Rilevanza</button>
+            <button class="sort-tab">Prezzo ↑</button>
+            <button class="sort-tab">Prezzo ↓</button>
+            <button class="sort-tab">Recenti</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- BODY: filtri + risultati -->
+  <section class="search-body py-4">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- SIDEBAR FILTRI -->
+        <div class="col-lg-3 d-none d-lg-block">
+          <div class="filters-card">
+            <div class="filters-header">
+              <i class="bi bi-sliders me-2"></i>Filtri
+              <button class="filters-reset ms-auto">Reset</button>
+            </div>
+
+            <!-- Categoria -->
+            <div class="filter-group">
+              <p class="filter-group-title">Categoria</p>
+              <div class="d-flex flex-column gap-1">
+                <label class="filter-check" *ngFor="let cat of categories">
+                  <input type="checkbox" class="filter-checkbox"> {{ cat.label }}
+                  <span class="filter-count ms-auto">{{ cat.count }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Condizione -->
+            <div class="filter-group">
+              <p class="filter-group-title">Condizione</p>
+              <div class="d-flex flex-column gap-1">
+                <label class="filter-check">
+                  <input type="checkbox" class="filter-checkbox"> Nuovo
+                  <span class="filter-count ms-auto">8</span>
+                </label>
+                <label class="filter-check">
+                  <input type="checkbox" class="filter-checkbox"> Ottimo
+                  <span class="filter-count ms-auto">14</span>
+                </label>
+                <label class="filter-check">
+                  <input type="checkbox" class="filter-checkbox"> Buono
+                  <span class="filter-count ms-auto">21</span>
+                </label>
+                <label class="filter-check">
+                  <input type="checkbox" class="filter-checkbox"> Discreto
+                  <span class="filter-count ms-auto">9</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Prezzo -->
+            <div class="filter-group">
+              <p class="filter-group-title">Prezzo massimo</p>
+              <div class="price-range-wrap">
+                <input type="range" class="price-range" min="0" max="100" value="50">
+                <div class="d-flex justify-content-between">
+                  <span class="price-range-label">€ 0</span>
+                  <span class="price-range-label price-range-val">€ 50</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- GRIGLIA RISULTATI -->
+        <div class="col-lg-9">
+
+          <!-- Nessun risultato -->
+          <div *ngIf="results.length === 0" class="empty-state text-center py-5">
+            <div class="empty-icon"><i class="bi bi-search"></i></div>
+            <h4 class="empty-title">Nessun risultato trovato</h4>
+            <p class="empty-sub">Prova con parole chiave diverse o rimuovi alcuni filtri.</p>
+          </div>
+
+          <!-- Cards risultati -->
+          <div class="row g-3" *ngIf="results.length > 0">
+            <div class="col-12 col-sm-6 col-xl-4" *ngFor="let item of results">
+              <div class="result-card">
+                <div class="result-img-wrap" [ngClass]="item.gradientClass">
+                  <i class="bi result-img-icon" [ngClass]="item.icon"></i>
+                  <span class="result-condition" [ngClass]="item.conditionClass">
+                    {{ item.condition }}
+                  </span>
+                  <button class="result-fav">
+                    <i class="bi bi-heart"></i>
+                  </button>
+                </div>
+                <div class="result-body">
+                  <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                    <p class="result-title">{{ item.title }}</p>
+                    <span class="result-price">€ {{ item.price }}</span>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between">
+                    <span class="result-category">
+                      <i class="bi bi-tag me-1"></i>{{ item.category }}
+                    </span>
+                    <span class="result-seller">
+                      <i class="bi bi-person-circle me-1"></i>{{ item.seller }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paginazione -->
+          <div class="d-flex justify-content-center mt-5" *ngIf="results.length > 0">
+            <nav class="search-pagination">
+              <button class="page-btn"><i class="bi bi-chevron-left"></i></button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <span class="page-dots">…</span>
+              <button class="page-btn">8</button>
+              <button class="page-btn"><i class="bi bi-chevron-right"></i></button>
+            </nav>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
