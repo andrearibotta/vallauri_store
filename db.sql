@@ -33,6 +33,7 @@ CREATE TABLE prodotto (
     id_prodotto INT AUTO_INCREMENT PRIMARY KEY,
     id_venditore INT NOT NULL,
     id_categoria INT NOT NULL,
+	nome VARCHAR(100) NOT NULL,
     descrizione TEXT NOT NULL,
     prezzo DECIMAL(10,2) NOT NULL,
     data_pubblicazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
