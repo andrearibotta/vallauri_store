@@ -14,47 +14,41 @@ async (accessToken, refreshToken, profile, done) => {
         const google_id = profile.id;
         const nome = profile.name.givenName || "";
         const cognome = profile.name.familyName || "";
-        let state = '';
 
-        // ← QUERY 1: cerca se l'utente esiste già
         const rows = await db.query(
             "SELECT * FROM utente WHERE google_id = ? OR email = ? LIMIT 1",
             [google_id, email]
         );
 
-        if(rows[0].google_id === null){
-            const result = await db.query(
+        // Utente non esiste → registrazione
+        if (rows.length === 0) {
+            return done(null, {
+                email,
+                google_id,
+                nome,
+                cognome,
+                nuovoUtente: true,
+                state: "register"
+            });
+        }
+
+        const utente = rows[0];
+
+        // Esiste per email ma senza google_id → collega account Google
+        if (utente.google_id === null) {
+            await db.query(
                 "UPDATE utente SET google_id = ? WHERE email = ?",
-                [google_id,email]
-
-
-
-                
-            )
+                [google_id, email]
+            );
+            utente.google_id = google_id;
         }
 
         // Utente esiste → login
-        if(rows.length > 0) {
-            state = 'login'
-            return done(null, { ...rows[0], nuovoUtente: false ,state});
-        }
-        else {state = 'register'}
-        
-
-        // Utente non esiste → registrazione
-        return done(null, {
-            email,
-            google_id,
-            nome,
-            cognome,
-            nuovoUtente: true,
-            state
-        });
+        return done(null, { ...utente, nuovoUtente: false, state: "login" });
 
     } catch(err) {
         return done(err, null);
     }
 }));
-
 
 module.exports = passport;
