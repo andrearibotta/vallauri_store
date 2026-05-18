@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Httpcalls} from '../../services/httpcalls';
 import {Controllologin} from '../../services/controllologin';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'home',
@@ -12,7 +13,7 @@ export class Home implements OnInit{
   loggato: boolean = false;
   classi: any[] = [];
 
-  constructor(private http: Httpcalls, private cl: Controllologin) { }
+  constructor(private http: Httpcalls, private cl: Controllologin, private router: Router) { }
 
   ngOnInit() {
     console.log("pagina inizializzata")

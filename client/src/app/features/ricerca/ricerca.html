@@ -26,7 +26,7 @@
       <!-- Info risultati + ordinamento -->
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         <div class="search-results-info">
-          <span class="results-count">{{ results.length }} risultati</span>
+          <span class="results-count">{{ prodotti.length }} risultati</span>
           <span class="results-query"> per "<strong>{{ searchQuery }}</strong>"</span>
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -109,45 +109,49 @@
         <div class="col-lg-9">
 
           <!-- Nessun risultato -->
-          <div *ngIf="results.length === 0" class="empty-state text-center py-5">
+          <div *ngIf="prodotti.length === 0" class="empty-state text-center py-5">
             <div class="empty-icon"><i class="bi bi-search"></i></div>
             <h4 class="empty-title">Nessun risultato trovato</h4>
             <p class="empty-sub">Prova con parole chiave diverse o rimuovi alcuni filtri.</p>
           </div>
 
           <!-- Cards risultati -->
-          <div class="row g-3" *ngIf="results.length > 0">
-            <div class="col-12 col-sm-6 col-xl-4" *ngFor="let item of results">
-              <div class="result-card">
-                <div class="result-img-wrap" [ngClass]="item.gradientClass">
-                  <i class="bi result-img-icon" [ngClass]="item.icon"></i>
-                  <span class="result-condition" [ngClass]="item.conditionClass">
+          <div class="row g-3" *ngIf="prodotti.length > 0">
+            @for(item of risultatiRicerca; track $index){
+              <div class="col-12 col-sm-6 col-xl-4">
+                <div class="result-card" (click)="clickProdotto(item)">
+                  <div class="result-img-wrap" [ngClass]="item.gradientClass">
+                    <i class="bi result-img-icon" [ngClass]="item.icon"></i>
+                    <span class="result-condition" [ngClass]="item.conditionClass">
                     {{ item.condition }}
                   </span>
-                  <button class="result-fav">
-                    <i class="bi bi-heart"></i>
-                  </button>
-                </div>
-                <div class="result-body">
-                  <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
-                    <p class="result-title">{{ item.title }}</p>
-                    <span class="result-price">€ {{ item.price }}</span>
+                    <button class="result-fav">
+                      <i class="bi bi-heart"></i>
+                    </button>
                   </div>
-                  <div class="d-flex align-items-center justify-content-between">
+                  <div class="result-body">
+                    <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                      <p class="result-title">{{ item.nome }}</p>
+                      <span class="result-price">€ {{ item.prezzo }}</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
                     <span class="result-category">
-                      <i class="bi bi-tag me-1"></i>{{ item.category }}
+                      <i class="bi bi-tag me-1"></i>{{ item.categoria }}
                     </span>
-                    <span class="result-seller">
-                      <i class="bi bi-person-circle me-1"></i>{{ item.seller }}
+                      <span class="result-seller">
+                      <i class="bi bi-person-circle me-1"></i>{{ item.id_venditore }}
                     </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+
+            }
+
           </div>
 
           <!-- Paginazione -->
-          <div class="d-flex justify-content-center mt-5" *ngIf="results.length > 0">
+          <div class="d-flex justify-content-center mt-5" *ngIf="risultatiRicerca.length > 0">
             <nav class="search-pagination">
               <button class="page-btn"><i class="bi bi-chevron-left"></i></button>
               <button class="page-btn active">1</button>

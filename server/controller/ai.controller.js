@@ -61,7 +61,7 @@ Rispondi SOLO con JSON valido, nessun altro testo:
     const clean = raw.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
     return parsed.ids; // null | [] | [id, id, ...]
-  } catch {
+  } catch (error){
     return null;
   }
 }
