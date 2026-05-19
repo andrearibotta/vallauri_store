@@ -1,26 +1,78 @@
-import { Component } from '@angular/core';
+import {ChangeDetectorRef, Component, effect, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Httpcalls } from '../../services/httpcalls';
+import { Controllologin } from '../../services/controllologin'; // 1. Importa il tuo servizio
 
 @Component({
   selector: 'profilo',
+  standalone: true, // Aggiungilo se usi componenti standalone
   imports: [CommonModule, RouterLink],
   templateUrl: './profilo.html',
   styleUrl: './profilo.css',
 })
-export class Profilo {
-  recensioni = [
-    { iniziale: 'L', nome: 'Luca M.',  stelle: 5, testo: 'Prodotto esattamente come descritto, consegna velocissima!', data: '2 giorni fa' },
-    { iniziale: 'S', nome: 'Sara B.',  stelle: 5, testo: 'Venditore gentilissimo, molto disponibile.', data: '1 settimana fa' },
-    { iniziale: 'G', nome: 'Giada T.', stelle: 4, testo: 'Tutto ok, libro in buone condizioni.', data: '2 settimane fa' },
-  ];
+export class Profilo implements OnInit {
+  loggato: boolean = false;
+  utenteLoggato: any = {};
+  datiTotali: any = null; // Inizializza a null come l'altra volta per l' @if dell'HTML
+  statoSelezionato: 'attivo' | 'venduto' = 'attivo'; // Serve per i tab degli annunci nell'HTML
 
-  annunci = [
-    { nome: 'Matematica Bergamini vol.2', prezzo: '8,00', condizione: 'Buono',   condClass: 'cond-good',  icon: 'bi-book',         gradientClass: 'grad-green', visite: 24 },
-    { nome: 'Cuffie JBL wireless',        prezzo: '20,00', condizione: 'Ottimo',  condClass: 'cond-great', icon: 'bi-headphones',   gradientClass: 'grad-blue',  visite: 41 },
-    { nome: 'Felpa scuola taglia M',      prezzo: '12,00', condizione: 'Nuovo',   condClass: 'cond-new',   icon: 'bi-bag',          gradientClass: 'grad-rose',  visite: 18 },
-    { nome: 'Appunti Fisica 5ª anno',     prezzo: '5,00',  condizione: 'Ottimo',  condClass: 'cond-great', icon: 'bi-journal-text', gradientClass: 'grad-amber', visite: 33 },
-    { nome: 'Calcolatrice Casio fx-570',  prezzo: '15,00', condizione: 'Buono',   condClass: 'cond-good',  icon: 'bi-calculator',   gradientClass: 'grad-violet',visite: 29 },
-    { nome: 'Zaino scuola Invicta',       prezzo: '25,00', condizione: 'Discreto',condClass: 'cond-ok',    icon: 'bi-backpack',     gradientClass: 'grad-orange',visite: 15 },
-  ];
+  // 2. Inietta il servizio cl nel costruttore
+  constructor(private http: Httpcalls, private cdr: ChangeDetectorRef, private cl: Controllologin) {
+    effect(() => {
+      const datiUtenteDalservizio = this.cl.currentData();
+
+      if (datiUtenteDalservizio && datiUtenteDalservizio.id) {
+        this.utenteLoggato = datiUtenteDalservizio;
+        this.loggato = true;
+
+        console.log("Profilo: Rilevato utente reale dal Signal. ID:", this.utenteLoggato.id);
+        this.caricaProfiloReale(this.utenteLoggato.id);
+      }
+    });
+  }
+
+  caricaProfiloReale(idUtente: number) {
+    this.http.Get('/private/getProfilo/' + idUtente).subscribe({
+      next: (data) => {
+        this.datiTotali = data;
+        console.log("Dati del profilo reale ricevuti con successo: ", this.datiTotali);
+
+        // Comunica ad Angular di aggiornare l'HTML con i dati appena arrivati
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Errore nella richiesta HTTP del profilo:", err);
+      }
+    });
+  }
+
+  ngOnInit() {
+    // 3. Recupera i dati dell'utente direttamente dal Signal del servizio invece che da history.state
+    const datiUtenteDalservizio = this.cl.currentData();
+
+    if (datiUtenteDalservizio && datiUtenteDalservizio.id) {
+      this.utenteLoggato = datiUtenteDalservizio;
+    } else {
+      console.warn("Profilo: id utente non trovato nel servizio Controllologin. Uso l'ID di test 1.");
+      // Fallback di sicurezza per i test locali o se ricarichi la pagina con F5
+      this.utenteLoggato = { id: 1 };
+    }
+
+    console.log("Eseguo la richiesta per l'ID utente:", this.utenteLoggato.id);
+
+    // Ora l'id non sarà mai più undefined
+    this.http.Get('/private/getProfilo/' + this.utenteLoggato.id).subscribe({
+      next: (data) => {
+        this.datiTotali = data;
+        console.log("dati ricevuti per private/getprofilo/: ", this.datiTotali);
+
+        // Forza l'aggiornamento della pagina appena i dati del server arrivano
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Errore nella richiesta del profilo:", err);
+      }
+    });
+  }
 }

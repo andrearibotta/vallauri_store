@@ -1,60 +1,60 @@
-import {Component, OnInit, effect} from '@angular/core';
-import {Router, RouterLink, RouterOutlet} from '@angular/router';
-import {Controllologin} from '../../services/controllologin';
-import {Httpcalls} from '../../services/httpcalls';
+import {Component, effect, ChangeDetectorRef, AfterViewInit, OnInit} from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { Controllologin } from '../../services/controllologin';
+import { Httpcalls } from '../../services/httpcalls';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'navbar',
-  imports: [RouterLink],
+  standalone: true,
+  imports: [RouterLink, CommonModule],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
-export class Navbar implements OnInit{
-  prodotticercati: any = {}
-
+export class Navbar implements AfterViewInit, OnInit {
+  prodotticercati: any = {};
   loggato: boolean = false;
-  constructor(private cl: Controllologin, private router: Router, private http: Httpcalls) {
+  utenteLoggato: any = {};
+
+  constructor(    private cl: Controllologin, private router: Router, private http: Httpcalls, private cdr: ChangeDetectorRef) {
     effect(() => {
       const dati = this.cl.currentData();
 
       if (dati) {
-        console.log('Dati ricevuti nel TS:', dati);
-        this.loggatoSI(dati);
+        //console.log('Dati ricevuti nel TS:', dati);
+        this.utenteLoggato = dati;
+        this.loggato = true;
+      } else {
+        this.utenteLoggato = {};
+        this.loggato = false;
+      }
 
-        queueMicrotask(() => {
-          this.loggato = true;
-        });
+      this.cdr.detectChanges();
+    });
+  }
+
+  ngOnInit() {
+    console.log("Navbar: Controllo l'identità dell'utente al boot dell'app...");
+
+    this.http.Get('/auth/me').subscribe({
+      next: (data) => {
+        console.log("Utente autenticato via cookie:", data);
+        this.cl.updateData(data.user);
+      },
+      error: (err) => {
+        console.log("Utente non loggato o sessione scaduta:", err);
+        this.cl.clearData();
       }
     });
   }
 
-  loggatoSI(dati: any) {
-    console.log("loggato in navbar ha funzionato, ", dati)
-  }
-
   ngAfterViewInit(): void {
-    // ── Dark mode ──
-    const btn  = document.getElementById('themeToggle')!;
-    const icon = document.getElementById('themeIcon')!;
-    const html = document.documentElement;
-
-    const saved = localStorage.getItem('theme') || 'light';
-    html.setAttribute('data-theme', saved);
-    this.updateIcon(icon, saved);
-
-    btn.addEventListener('click', () => {
-      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-      this.updateIcon(icon, next);
-    });
-
-    // ── Ricerca ──
+    // ── Gestione Ricerca ──
     const input = document.getElementById('navSearchInput') as HTMLInputElement;
-    const btnSrch = document.getElementById('navSearchBtn')!;
+    const btnSrch = document.getElementById('navSearchBtn');
 
     const doSearch = () => {
-
+      if (!input) return;
       const q = input.value.trim();
       if (q) {
         this.router.navigate(['/ricerca'], {
@@ -63,21 +63,28 @@ export class Navbar implements OnInit{
       }
     };
 
-    btnSrch.addEventListener('click', doSearch);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') doSearch();
+    if (btnSrch) btnSrch.addEventListener('click', doSearch);
+    if (input) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') doSearch();
+      });
+    }
+  }
+
+  visualizzaProfilo() {
+    console.log("dati che passoooooooooo: ", this.utenteLoggato);
+    this.router.navigate(['/profilo'], {
+      state: { utenteLoggato: this.utenteLoggato }
     });
   }
 
-  private updateIcon(icon: HTMLElement, theme: string): void {
-    icon.className = theme === 'dark'
-      ? 'bi bi-brightness-high-fill'
-      : 'bi bi-moon-stars-fill';
-  }
-
-  ngOnInit() {
-   /* this.cl.currentData.subscribe(msg => this.loggato = msg)
-    console.log("loggato dalla navbar")
-    console.log("cm: ", this.loggato)*/
+  logout() {
+    this.http.Post('/auth/logout', {}).subscribe({
+      next:data =>{
+        console.log("logout: ", data)
+        this.cl.clearData();
+        this.router.navigate(['/home']);
+      }
+    })
   }
 }

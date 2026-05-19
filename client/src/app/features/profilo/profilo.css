@@ -17,6 +17,7 @@
 .profilo-cover {
   height: 110px;
   background: linear-gradient(135deg, #00b398 0%, #3b82f6 60%, #8b5cf6 100%);
+  margin-bottom: 30px;
 }
 
 .profilo-header-body {

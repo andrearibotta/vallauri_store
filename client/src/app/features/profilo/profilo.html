@@ -1,3 +1,4 @@
+@if(datiTotali) {
 <div class="profilo-page">
   <div class="container py-4 py-lg-5">
 
@@ -15,11 +16,11 @@
             <div class="profilo-avatar-badge"><i class="bi bi-patch-check-fill"></i></div>
           </div>
           <div class="flex-grow-1">
-            <h1 class="profilo-nome">Mario Rossi</h1>
+            <h1 class="profilo-nome">{{ datiTotali.nome }} {{ datiTotali.cognome }}</h1>
             <div class="d-flex flex-wrap gap-2 mt-1">
-              <span class="profilo-chip"><i class="bi bi-mortarboard me-1"></i>Liceo Scientifico · 4ª B</span>
-              <span class="profilo-chip"><i class="bi bi-geo-alt me-1"></i>Cuneo</span>
-              <span class="profilo-chip"><i class="bi bi-calendar3 me-1"></i>Iscritto a Marzo 2025</span>
+              <span class="profilo-chip"><i class="bi bi-mortarboard me-1"></i>IIS G. Vallauri</span>
+              <span class="profilo-chip"><i class="bi bi-geo-alt me-1"></i>Fossano</span>
+              <span class="profilo-chip"><i class="bi bi-calendar3 me-1"></i>Iscritto QUANDO????</span>
             </div>
           </div>
           <a routerLink="/impostazioni" class="btn btn-edit-profile">
@@ -30,22 +31,22 @@
         <!-- Statistiche -->
         <div class="profilo-stats mt-4">
           <div class="profilo-stat">
-            <span class="profilo-stat-num">12</span>
+            <span class="profilo-stat-num">{{ datiTotali.stats.annunci_pubblicati }}</span>
             <span class="profilo-stat-label">Annunci pubblicati</span>
           </div>
           <div class="profilo-stat-divider"></div>
           <div class="profilo-stat">
-            <span class="profilo-stat-num">8</span>
+            <span class="profilo-stat-num">{{ datiTotali.stats.vendite_concluse }}</span>
             <span class="profilo-stat-label">Vendite concluse</span>
           </div>
           <div class="profilo-stat-divider"></div>
           <div class="profilo-stat">
             <span class="profilo-stat-num stat-green">4.9</span>
-            <span class="profilo-stat-label"><i class="bi bi-star-fill text-warning me-1"></i>Valutazione</span>
+            <span class="profilo-stat-label"><i class="bi bi-star-fill text-warning me-1"></i>{{ datiTotali.stats.valutazione }}</span>
           </div>
           <div class="profilo-stat-divider"></div>
           <div class="profilo-stat">
-            <span class="profilo-stat-num stat-blue">€ 74</span>
+            <span class="profilo-stat-num stat-blue">€ {{ datiTotali.stats.guadagnati }}</span>
             <span class="profilo-stat-label">Guadagnati</span>
           </div>
         </div>
@@ -68,23 +69,17 @@
               <i class="bi bi-envelope"></i>
               <div>
                 <span class="info-label">Email</span>
-                <span class="info-value">mario.rossi&#64;scuola.it</span>
+                <span class="info-value">{{ datiTotali.email }}</span>
               </div>
             </div>
             <div class="info-row">
               <i class="bi bi-mortarboard"></i>
               <div>
-                <span class="info-label">Indirizzo</span>
-                <span class="info-value">Liceo Scientifico</span>
+                <span class="info-label">Scuola</span>
+                <span class="info-value">IIS G. Vallauri</span>
               </div>
             </div>
-            <div class="info-row">
-              <i class="bi bi-123"></i>
-              <div>
-                <span class="info-label">Anno</span>
-                <span class="info-value">4ª</span>
-              </div>
-            </div>
+
             <div class="info-row">
               <i class="bi bi-chat-dots"></i>
               <div>
@@ -96,28 +91,31 @@
         </div>
 
         <!-- Valutazioni -->
-        <div class="profilo-card">
-          <div class="profilo-card-header">
-            <i class="bi bi-star me-2"></i>Valutazioni recenti
-          </div>
-          <div class="profilo-card-body p-0">
-            <div class="review-item" *ngFor="let r of recensioni">
-              <div class="review-avatar">{{ r.iniziale }}</div>
-              <div class="flex-grow-1">
-                <div class="d-flex align-items-center justify-content-between">
-                  <span class="review-nome">{{ r.nome }}</span>
-                  <div class="review-stars">
-                    <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4,5]"
-                       [class.active]="s <= r.stelle"></i>
+        @if(datiTotali.recensioni.length !== 0) {
+          <div class="profilo-card">
+            <div class="profilo-card-header">
+              <i class="bi bi-star me-2"></i>Valutazioni recenti
+            </div>
+            <div class="profilo-card-body p-0">
+              @for(r of datiTotali.recensioni; track $index) {
+                <div class="review-item">
+                  <div class="review-avatar">{{ r.iniziale }}</div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span class="review-nome">{{ r.nome }}</span>
+                      <div class="review-stars">
+                        <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4,5]"
+                           [class.active]="s <= r.stelle"></i>
+                      </div>
+                    </div>
+                    <p class="review-testo">{{ r.testo }}</p>
+                    <span class="review-data">{{ r.data }}</span>
                   </div>
                 </div>
-                <p class="review-testo">{{ r.testo }}</p>
-                <span class="review-data">{{ r.data }}</span>
-              </div>
+              }
             </div>
           </div>
-        </div>
-
+        }
       </div>
 
       <!-- ── COLONNA DESTRA: annunci ── -->
@@ -126,37 +124,40 @@
           <div class="profilo-card-header d-flex align-items-center justify-content-between">
             <span><i class="bi bi-grid me-2"></i>I miei annunci</span>
             <div class="annunci-tabs">
-              <button class="annunci-tab active">Attivi (8)</button>
-              <button class="annunci-tab">Venduti (4)</button>
+              <button class="annunci-tab active">Attivi ({{ datiTotali.stats.annunci_pubblicati }})</button>
+              <button class="annunci-tab">Venduti ({{ datiTotali.stats.vendite_concluse }})</button>
             </div>
           </div>
           <div class="profilo-card-body">
             <div class="row g-3">
-              <div class="col-12 col-sm-6" *ngFor="let a of annunci">
-                <div class="annuncio-card">
-                  <div class="annuncio-img" [ngClass]="a.gradientClass">
-                    <i class="bi" [ngClass]="a.icon"></i>
-                    <span class="annuncio-cond" [ngClass]="a.condClass">{{ a.condizione }}</span>
-                    <div class="annuncio-actions">
-                      <button class="annuncio-action-btn" title="Modifica">
-                        <i class="bi bi-pencil"></i>
-                      </button>
-                      <button class="annuncio-action-btn danger" title="Elimina">
-                        <i class="bi bi-trash"></i>
-                      </button>
+              @for(a of datiTotali.annunci; track $index)
+              {
+                <div class="col-12 col-sm-6">
+                  <div class="annuncio-card">
+                    <div class="annuncio-img" [ngClass]="a.gradientClass">
+                      <i class="bi" [ngClass]="a.icon"></i>
+                      <span class="annuncio-cond" [ngClass]="a.condClass">{{ a.condizione }}</span>
+                      <div class="annuncio-actions">
+                        <button class="annuncio-action-btn" title="Modifica">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="annuncio-action-btn danger" title="Elimina">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div class="annuncio-body">
-                    <p class="annuncio-title">{{ a.nome }}</p>
-                    <div class="d-flex align-items-center justify-content-between">
-                      <span class="annuncio-price">€ {{ a.prezzo }}</span>
-                      <span class="annuncio-views">
-                        <i class="bi bi-eye me-1"></i>{{ a.visite }}
-                      </span>
+                    <div class="annuncio-body">
+                      <p class="annuncio-title">{{ a.nome }}</p>
+                      <div class="d-flex align-items-center justify-content-between">
+                        <span class="annuncio-price">€ {{ a.prezzo }}</span>
+                        <span class="annuncio-views">
+                          <i class="bi bi-eye me-1"></i>{{ a.visite }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              }
             </div>
 
             <!-- Aggiungi annuncio -->
@@ -171,3 +172,4 @@
     </div>
   </div>
 </div>
+}

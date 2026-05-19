@@ -12,4 +12,8 @@ export class Controllologin {
   updateData(data: any) {
     this.navbarData.set(data);
   }
+
+  clearData() {
+    this.navbarData.update(() => null);
+  }
 }

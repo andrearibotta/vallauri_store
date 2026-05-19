@@ -31,6 +31,7 @@ export class Prodotto implements OnInit {
     this.datiUtente = history.state.utente;
     this.loggato = history.state.loggato;
     console.log(this.datiUtente);
+    console.log("login prodotto: ", history.state)
 
     //richiedere 4 prodotti casuali al server da mettere sotto per visualizzare
   }

@@ -16,13 +16,6 @@ export class Home implements OnInit{
   constructor(private http: Httpcalls, private cl: Controllologin, private router: Router) { }
 
   ngOnInit() {
-    console.log("pagina inizializzata")
-    this.http.Get('/auth/me').subscribe({
-      next:data =>{
-        this.loggato = true;
-        console.log("home ", data)
-        this.cl.updateData(true);
-      }
-    })
+
   }
 }

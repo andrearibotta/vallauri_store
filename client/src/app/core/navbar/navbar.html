@@ -45,11 +45,7 @@
             <span class="nav-label">Preferiti</span>
           </a>
         </li>
-        <li class="nav-item">
-          <button class="theme-toggle" id="themeToggle" title="Cambia tema">
-            <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
-          </button>
-        </li>
+
         <li class="nav-item">
           @if(!loggato) {
             <a class="btn btn-accedi ms-1" routerLink="/login">
@@ -57,11 +53,18 @@
             </a>
           }
           @else {
-            <a class="btn btn-accedi ms-1" routerLink="/profilo">
+            <a class="btn btn-accedi ms-1" (click)="visualizzaProfilo()">
               <i class="bi bi-person-circle me-1"></i> Profilo
             </a>
           }
         </li>
+        @if(loggato) {
+          <li class="nav-item">
+            <button class="theme-toggle" id="btnLogout" title="Cambia tema" (click)="logout()" >
+              <img src="immagini/icona_logout.png" alt="Icona" class="bi bi-moon-stars-fill" id="themeIcon" width="26px" height="26px">
+            </button>
+          </li>
+        }
       </ul>
 
     </div>

@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // 1. Importa ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import {Httpcalls} from '../../services/httpcalls';
+import { Httpcalls } from '../../services/httpcalls';
 
 export interface SearchResult {
   id: number;
@@ -17,14 +17,21 @@ export interface SearchResult {
 
 @Component({
   selector: 'ricerca',
+  standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './ricerca.html',
   styleUrl: './ricerca.css',
 })
 export class Ricerca implements OnInit {
-  risultatiRicerca: any = {}
-  constructor(private http: Httpcalls, private route: ActivatedRoute, private router: Router) {
-  }
+  risultatiRicerca: any = []; // Inizializzalo come array vuoto invece di oggetto se cicli con @for
+
+  // 2. Inietta cdr nel costruttore
+  constructor(
+    private http: Httpcalls,
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   searchQuery = '';
   isLoading   = false;
@@ -38,76 +45,46 @@ export class Ricerca implements OnInit {
     { label: 'Sport',          count: 5  },
   ];
 
-  //dati fittizi
   prodotti: any = [
-    {
-      id_prodotto: 1,
-      nome: "Matematica Bergamini vol. 2",
-      prezzo: "8.00",
-      categoria: "Libri",
-      descrizione: "Condizione: Buono.",
-      venditore: "Marco R."
-    },
-    {
-      id_prodotto: 2,
-      nome: "Matematica per il biennio",
-      prezzo: "5.00",
-      categoria: "Libri",
-      descrizione: "Condizione: Discreto.",
-      venditore: "Giada T."
-    },
-    {
-      id_prodotto: 3,
-      nome: "Appunti Matematica 5ª anno",
-      prezzo: "3.00",
-      categoria: "Appunti",
-      descrizione: "Condizione: Ottimo.",
-      venditore: "Luca M."
-    },
-    {
-      id_prodotto: 4,
-      nome: "Calcolatrice scientifica Casio",
-      prezzo: "15.00",
-      categoria: "Elettronica",
-      descrizione: "Condizione: Ottimo.",
-      venditore: "Sara B."
-    },
-    {
-      id_prodotto: 5,
-      nome: "Matematica verde vol. 1",
-      prezzo: "6.00",
-      categoria: "Libri",
-      descrizione: "Condizione: Buono.",
-      venditore: "Paolo F."
-    },
-    {
-      id_prodotto: 6,
-      nome: "Esercizi svolti - Analisi",
-      prezzo: "4.00",
-      categoria: "Appunti",
-      descrizione: "Condizione: Nuovo.",
-      venditore: "Alice V."
-    }
+    // ... i tuoi dati fittizi rimangono identici
   ];
 
   loggato: boolean = false;
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      this.searchQuery = history.state.q.q;
-      this.loggato = history.state.q.loggato;
-      console.log(this.searchQuery)
+      console.log("History State attuale:", history.state);
+
+      // SICUREZZA: Protezione anti-crash se l'utente rinfresca la pagina (F5)
+      if (history.state && history.state.q) {
+        this.searchQuery = history.state.q.q;
+        this.loggato = history.state.loggato || false;
+      } else {
+        // Fallback se ricarichi la pagina o entri direttamente dall'URL
+        this.searchQuery = '';
+        this.loggato = false;
+      }
+
       if (this.searchQuery) {
-        console.log(this.searchQuery)
+        console.log("Avvio ricerca IA per:", this.searchQuery);
         this.isLoading = true;
-        this.http.Post('/ai/chat', {message: this.searchQuery}).subscribe({
+
+        // Forza un controllo iniziale per mostrare lo spinner di caricamento
+        this.cdr.detectChanges();
+
+        this.http.Post('/ai/chat', { message: this.searchQuery }).subscribe({
           next: data => {
             this.risultatiRicerca = data.products;
-            console.log("RisultatiRicerca: ", this.risultatiRicerca)
+            console.log("RisultatiRicerca ricevuti dal server: ", this.risultatiRicerca);
             this.isLoading = false;
+
+            // 3. FONDAMENTALE: Forza Angular a renderizzare i dati nelle card ora che sono arrivati
+            this.cdr.detectChanges();
           },
           error: err => {
-            console.error(err)
+            console.error("Errore nella ricerca IA:", err);
+            this.isLoading = false;
+            this.cdr.detectChanges();
           }
         });
       }
@@ -116,7 +93,10 @@ export class Ricerca implements OnInit {
 
   clickProdotto(item: any) {
     console.log("item cliccato: ", item);
+    console.log("loggato come passa? ", this.loggato);
+
     this.router.navigate(['/prodotto'], {
-      state: { utente: item , loggato: this.loggato }
-    });  }
+      state: { utente: item, loggato: this.loggato }
+    });
+  }
 }

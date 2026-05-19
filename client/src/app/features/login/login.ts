@@ -97,10 +97,10 @@ export class Login implements AfterViewInit, OnInit {
   }
 
   login() {
-    console.log("password ", this.password)
-    console.log("email ", this.email)
     this.http.Post('/auth/login',{ email: this.email, password: this.password }).subscribe({
       next:data =>{
+        console.log("dati login: ", data)
+        this.navbarService.updateData(data);
         this.router.navigate(['/home']);
       }
     })

@@ -97,42 +97,60 @@ router.get("/google",
 );
 
 router.get("/google/callback",
-passport.authenticate('google', { session: false }),
-(req, res) => {
-    // 1. METTI QUESTO CONSOLE.LOG PER CAPIRE IL PROBLEMA!
-    console.log("Dati arrivati da Passport:", req.user);
+    passport.authenticate('google', { session: false }),
+    async (req, res, next) => { // <── Aggiungi async qui per poter usare await sul DB
+        try {
+            console.log("Dati arrivati da Passport:", req.user);
 
-    // 2. Assicurati che il payload stia leggendo i dati giusti
-    const payload = {
-        id: req.user.id,
-        email: req.user.email,
-        nome: req.user.nome,
-        cognome: req.user.cognome,
-        google_id:req.user.google_id
-    };
+            // 1. CERCA L'UTENTE NEL DB TRAMITE EMAIL
+            const rows = await db.query(
+                "SELECT id_utente FROM utente WHERE email = ? LIMIT 1",
+                [req.user.email]
+            );
 
-    const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
-    
-    // 3. Creiamo il token
-    const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
+            let utenteId;
 
-    res.cookie('token_accesso', token, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: false,  
-        maxAge: 1000 * 60 * 60 * 24 
-        });
+            if (rows.length > 0) {
+                // L'utente esiste già, prendiamo il suo ID dal database
+                utenteId = rows[0].id_utente;
+            } else {
+                // L'utente è nuovo, lo inseriamo nel DB (senza password per ora, o gestisci il tuo stato register)
+                const result = await db.query(
+                    "INSERT INTO utente (nome, cognome, email, google_id) VALUES (?, ?, ?, ?)",
+                    [req.user.nome, req.user.cognome, req.user.email, req.user.google_id]
+                );
+                utenteId = result.insertId; // Prendiamo l'ID appena generato dal database
+            }
 
-        if(req.user.state === "register") {
-            let data = {};
-            res.render("index", data)
+            // 2. ORA IL PAYLOAD HA SICURAMENTE L'ID REALE DEL DATABASE
+            const payload = {
+                id: utenteId, // <── Adesso c'è al 100%!
+                email: req.user.email,
+                nome: req.user.nome,
+                cognome: req.user.cognome,
+                google_id: req.user.google_id
+            };
+
+            const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
+            const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
+
+            res.cookie('token_accesso', token, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24
+            });
+
+            if (req.user.state === "register") {
+                let data = {};
+                res.render("index", data);
+            } else {
+                res.redirect(process.env.FRONTEND_URL);
+            }
+        } catch (err) {
+            next(err);
         }
-        else
-            res.redirect(process.env.FRONTEND_URL)
-    }
-
-
-);
+    });
 
 router.get("/google/failure",(req, res) => {
     res.status(401).json({ error: "Autenticazione Google fallita", requestId: req.id });
