@@ -90,9 +90,13 @@ export class Ricerca implements OnInit {
     }
   ];
 
+  loggato: boolean = false;
+
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      this.searchQuery = params['q'] || '';
+      this.searchQuery = history.state.q.q;
+      this.loggato = history.state.q.loggato;
+      console.log(this.searchQuery)
       if (this.searchQuery) {
         console.log(this.searchQuery)
         this.isLoading = true;
@@ -112,6 +116,7 @@ export class Ricerca implements OnInit {
 
   clickProdotto(item: any) {
     console.log("item cliccato: ", item);
-    this.router.navigate(['/prodotto'])
-  }
+    this.router.navigate(['/prodotto'], {
+      state: { utente: item , loggato: this.loggato }
+    });  }
 }

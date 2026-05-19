@@ -9,17 +9,9 @@ import { RouterLink, Router } from '@angular/router';
   styleUrl: './prodotto.css',
 })
 export class Prodotto implements OnInit {
-
-  // ── Dati prodotto — qui arriveranno dal tuo server ──
-  prodotto = {
-    id_prodotto: 1,
-    nome:        'T-shirt Bianca Basic H&M',
-    descrizione: 'T-shirt in cotone organico 100%, vestibilità slim fit. È stata lavata solo un paio di volte, non presenta macchie né buchi. Ideale come sotto-giacca o per un look casual estivo.',
-    prezzo:      '5.00',
-    categoria:   'Abbigliamento Uomo',
-    condizione:  'Ottimo',
-    venditore:   'Mario',
-  };
+  datiUtente: any = {}
+  utenteLoggato: any = {}
+  loggato: boolean = false;
 
   // Classe gradiente e icona calcolate dalla categoria
   gradientClass = 'grad-rose';
@@ -36,13 +28,11 @@ export class Prodotto implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    // Qui recupererai il prodotto passato dalla card, es. tramite:
-    //   - navigation state:  const nav = this.router.getCurrentNavigation();
-    //                        this.prodotto = nav?.extras?.state?.['item'];
-    //   - oppure query param: /prodotto?id=1  e chiamata HTTP
+    this.datiUtente = history.state.utente;
+    this.loggato = history.state.loggato;
+    console.log(this.datiUtente);
 
-    this.gradientClass = this.getGradient(this.prodotto.categoria);
-    this.categoryIcon  = this.getIcon(this.prodotto.categoria);
+    //richiedere 4 prodotti casuali al server da mettere sotto per visualizzare
   }
 
   private getGradient(categoria: string): string {
@@ -70,4 +60,21 @@ export class Prodotto implements OnInit {
     };
     return map[categoria] ?? 'bi-box';
   }
+
+  apriChat() {
+    console.log("apertura chat");
+    if(!this.loggato)
+    {
+      this.router.navigate(['/login'], {
+        state: { dati: { id_venditore: this.datiUtente.id_venditore, id_prodotto: this.datiUtente.id_prodotto, info: "A LOGIN EFFETTUATO RICORDARE DI PASSARE I DATI DI NUOVO E REDIRECT A CHAT" } }
+      });
+    }
+    else {
+      this.router.navigate(['/chat'], {
+        state: { dati: { id_venditore: this.datiUtente.id_venditore, id_acquirente: this.utenteLoggato.id_utente, id_prodotto: this.datiUtente.id_prodotto }, loggato: this.loggato }
+      });
+    }
+
+  }
+
 }

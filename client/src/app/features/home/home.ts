@@ -20,8 +20,8 @@ export class Home implements OnInit{
     this.http.Get('/auth/me').subscribe({
       next:data =>{
         this.loggato = true;
-        console.log(data)
-        this.cl.changeMessage(true);
+        console.log("home ", data)
+        this.cl.updateData(true);
       }
     })
   }

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, effect} from '@angular/core';
 import {Router, RouterLink, RouterOutlet} from '@angular/router';
 import {Controllologin} from '../../services/controllologin';
 import {Httpcalls} from '../../services/httpcalls';
@@ -14,6 +14,22 @@ export class Navbar implements OnInit{
 
   loggato: boolean = false;
   constructor(private cl: Controllologin, private router: Router, private http: Httpcalls) {
+    effect(() => {
+      const dati = this.cl.currentData();
+
+      if (dati) {
+        console.log('Dati ricevuti nel TS:', dati);
+        this.loggatoSI(dati);
+
+        queueMicrotask(() => {
+          this.loggato = true;
+        });
+      }
+    });
+  }
+
+  loggatoSI(dati: any) {
+    console.log("loggato in navbar ha funzionato, ", dati)
   }
 
   ngAfterViewInit(): void {
@@ -40,7 +56,11 @@ export class Navbar implements OnInit{
     const doSearch = () => {
 
       const q = input.value.trim();
-      if (q) this.router.navigate(['/ricerca'], { queryParams: { q } });
+      if (q) {
+        this.router.navigate(['/ricerca'], {
+          state: { q: { q }, loggato: this.loggato }
+        });
+      }
     };
 
     btnSrch.addEventListener('click', doSearch);
@@ -56,8 +76,8 @@ export class Navbar implements OnInit{
   }
 
   ngOnInit() {
-    this.cl.currentMessage.subscribe(msg => this.loggato = msg)
+   /* this.cl.currentData.subscribe(msg => this.loggato = msg)
     console.log("loggato dalla navbar")
-    console.log("cm: ", this.loggato)
+    console.log("cm: ", this.loggato)*/
   }
 }

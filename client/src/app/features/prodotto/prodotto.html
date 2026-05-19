@@ -8,7 +8,7 @@
       <i class="bi bi-chevron-right"></i>
       <a routerLink="/ricerca">Annunci</a>
       <i class="bi bi-chevron-right"></i>
-      <span>{{ prodotto.nome }}</span>
+      <span>{{ datiUtente.nome }}</span>
     </nav>
 
     <div class="row g-4 g-lg-5">
@@ -36,30 +36,30 @@
         <!-- Badge categoria + condizione -->
         <div class="d-flex flex-wrap gap-2 mb-3">
           <span class="prodotto-badge badge-category">
-            <i class="bi bi-tag me-1"></i>{{ prodotto.categoria }}
+            <i class="bi bi-tag me-1"></i>{{ datiUtente.categoria }}
           </span>
           <span class="prodotto-badge badge-condition">
-            <i class="bi bi-star me-1"></i>{{ prodotto.condizione }}
+            <i class="bi bi-star me-1"></i>{{ datiUtente.condizione }}
           </span>
         </div>
 
         <!-- Nome -->
-        <h1 class="prodotto-nome">{{ prodotto.nome }}</h1>
+        <h1 class="prodotto-nome">{{ datiUtente.nome }}</h1>
 
         <!-- Prezzo -->
         <div class="prodotto-prezzo-wrap my-3">
-          <span class="prodotto-prezzo">€ {{ prodotto.prezzo }}</span>
+          <span class="prodotto-prezzo">€ {{ datiUtente.prezzo }}</span>
           <span class="prodotto-prezzo-note">Trattabile</span>
         </div>
 
         <!-- Venditore -->
         <div class="venditore-card mb-4">
           <div class="venditore-avatar">
-            {{ prodotto.venditore.charAt(0).toUpperCase() }}
+            {{ datiUtente.venditoreNome.charAt(0).toUpperCase() }} {{datiUtente.venditoreCognome.charAt(0).toUpperCase()}}
           </div>
           <div class="venditore-info">
             <span class="venditore-label">Venduto da</span>
-            <span class="venditore-nome">{{ prodotto.venditore }}</span>
+            <span class="venditore-nome">{{ datiUtente.venditoreNome }} {{datiUtente.venditoreCognome}}</span>
           </div>
           <div class="venditore-meta ms-auto text-end">
             <span class="venditore-rating"><i class="bi bi-star-fill me-1"></i>4.8</span>
@@ -72,7 +72,7 @@
           <h6 class="prodotto-section-title">
             <i class="bi bi-card-text me-2"></i>Descrizione
           </h6>
-          <p class="prodotto-desc">{{ prodotto.descrizione }}</p>
+          <p class="prodotto-desc">{{ datiUtente.descrizione }}</p>
         </div>
 
         <!-- Info rapide -->
@@ -97,7 +97,7 @@
 
         <!-- Azioni -->
         <div class="d-flex flex-column flex-sm-row gap-3">
-          <button class="btn btn-contatta flex-grow-1">
+          <button class="btn btn-contatta flex-grow-1" (click)="apriChat()">
             <i class="bi bi-chat-dots me-2"></i>Contatta il venditore
           </button>
           <button class="btn btn-preferito">

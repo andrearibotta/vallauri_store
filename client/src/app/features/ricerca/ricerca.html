@@ -116,7 +116,7 @@
           </div>
 
           <!-- Cards risultati -->
-          <div class="row g-3" *ngIf="prodotti.length > 0">
+          <div class="row g-3">
             @for(item of risultatiRicerca; track $index){
               <div class="col-12 col-sm-6 col-xl-4">
                 <div class="result-card" (click)="clickProdotto(item)">

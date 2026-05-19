@@ -3,6 +3,7 @@ import {Component, NgModule} from '@angular/core';
 import { Httpcalls } from '../../services/httpcalls';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import {Controllologin} from '../../services/controllologin';
 
 @Component({
   selector: 'login',
@@ -29,8 +30,10 @@ export class Login implements AfterViewInit, OnInit {
 
   classesel: string = "";
 
+  prelogin: any = {}; //dati ricevuti quando arrivo al login cliccando "contatta un venditore"
+
   ngOnInit() {
-    this.http.Get('/public/getAllClassi').subscribe({
+    /*this.http.Get('/public/getAllClassi').subscribe({
       next:data =>{
         this.classi = data.classe;
 
@@ -42,7 +45,10 @@ export class Login implements AfterViewInit, OnInit {
 
         console.log("indirizzi:", this.indirizzi)
       }
-    })
+    })*/
+
+    this.prelogin = history.state.dati;
+    console.log(this.prelogin);
   }
 
   ngAfterViewInit(): void {
@@ -68,7 +74,7 @@ export class Login implements AfterViewInit, OnInit {
     document.getElementById('cardSubtitle')!.textContent = 'Unisciti a vallauristore gratuitamente';
   }
 
-  constructor(private http: Httpcalls, private route: Router) {
+  constructor(private http: Httpcalls, private router: Router, private navbarService: Controllologin) {
   }
 
   googleLogin() {
@@ -95,7 +101,7 @@ export class Login implements AfterViewInit, OnInit {
     console.log("email ", this.email)
     this.http.Post('/auth/login',{ email: this.email, password: this.password }).subscribe({
       next:data =>{
-        this.route.navigate(['/home']);
+        this.router.navigate(['/home']);
       }
     })
   }
@@ -112,13 +118,19 @@ export class Login implements AfterViewInit, OnInit {
     console.log(data)
     this.http.Post('/auth/register',{ data }).subscribe({
       next:data =>{
-        this.route.navigate(['/home']);
+        this.router.navigate(['/home']);
         console.log("REGISTRATO CON SUCCESSO")
       },
       error: err => {
         console.error(err)
       }
     })
+  }
+
+  invialoginallanavbar() {
+    this.navbarService.updateData({ titolo: 'Profilo Utente', notifiche: 5 });
+
+    this.router.navigate(['/profilo']);
   }
 
   selind(){

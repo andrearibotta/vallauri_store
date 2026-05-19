@@ -1,0 +1,128 @@
+<!-- ===== PAGINA CHAT ===== -->
+<div class="chat-page">
+  <div class="container py-4">
+    <div class="row g-0 chat-layout">
+
+      <!-- ── SIDEBAR: lista conversazioni ── -->
+      <div class="col-lg-4 col-md-5 chat-sidebar" [class.mobile-hidden]="chatAperta">
+
+        <div class="chat-sidebar-header">
+          <h5 class="chat-sidebar-title">Messaggi</h5>
+          <span class="chat-count">{{ conversazioni.length }}</span>
+        </div>
+
+        <!-- Ricerca -->
+        <div class="chat-search-wrap">
+          <div class="input-group chat-search-group">
+            <span class="input-group-text chat-search-icon">
+              <i class="bi bi-search"></i>
+            </span>
+            <input type="text" class="form-control chat-search-input" placeholder="Cerca conversazione…">
+          </div>
+        </div>
+
+        <!-- Lista chat -->
+        <div class="chat-list">
+          <div
+            class="chat-list-item"
+            *ngFor="let c of conversazioni"
+            [class.active]="c.id === conversazioneAttiva?.id"
+            (click)="apriChat(c)"
+          >
+            <div class="chat-list-avatar" [style.background]="c.colore">
+              {{ c.iniziale }}
+              <span class="chat-online-dot" *ngIf="c.online"></span>
+            </div>
+            <div class="flex-grow-1 min-w-0">
+              <div class="d-flex align-items-center justify-content-between">
+                <span class="chat-list-nome">{{ c.venditore }}</span>
+                <span class="chat-list-ora">{{ c.ora }}</span>
+              </div>
+              <p class="chat-list-preview">{{ c.ultimoMessaggio }}</p>
+              <span class="chat-list-prodotto">
+                <i class="bi bi-tag me-1"></i>{{ c.nomeProdotto }}
+              </span>
+            </div>
+            <span class="chat-unread" *ngIf="c.nonLetti > 0">{{ c.nonLetti }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── AREA CHAT ── -->
+      <div class="col-lg-8 col-md-7 chat-main" [class.mobile-hidden]="!chatAperta">
+
+        <!-- Nessuna chat selezionata -->
+        <div class="chat-empty" *ngIf="!conversazioneAttiva">
+          <div class="chat-empty-icon"><i class="bi bi-chat-heart"></i></div>
+          <h5 class="chat-empty-title">Seleziona una conversazione</h5>
+          <p class="chat-empty-sub">Scegli una chat dalla lista per iniziare a scrivere.</p>
+        </div>
+
+        <!-- Chat aperta -->
+        <ng-container *ngIf="conversazioneAttiva">
+
+          <!-- Header chat -->
+          <div class="chat-header">
+            <button class="chat-back-btn d-md-none" (click)="chiudiChat()">
+              <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="chat-header-avatar" [style.background]="conversazioneAttiva.colore">
+              {{ conversazioneAttiva.iniziale }}
+              <span class="chat-online-dot" *ngIf="conversazioneAttiva.online"></span>
+            </div>
+            <div class="flex-grow-1">
+              <span class="chat-header-nome">{{ conversazioneAttiva.venditore }}</span>
+              <span class="chat-header-status" *ngIf="conversazioneAttiva.online">Online adesso</span>
+              <span class="chat-header-status" *ngIf="!conversazioneAttiva.online">Offline</span>
+            </div>
+            <!-- Prodotto in oggetto -->
+            <div class="chat-header-prodotto">
+              <span class="chp-label">Prodotto</span>
+              <span class="chp-nome">{{ conversazioneAttiva.nomeProdotto }}</span>
+              <span class="chp-prezzo">€ {{ conversazioneAttiva.prezzo }}</span>
+            </div>
+          </div>
+
+          <!-- Messaggi -->
+          <div class="chat-messages" #scrollContainer>
+            <ng-container *ngFor="let m of conversazioneAttiva.messaggi">
+
+              <!-- Data separatore -->
+              <div class="chat-day-separator" *ngIf="m.separatore">
+                <span>{{ m.separatore }}</span>
+              </div>
+
+              <!-- Messaggio -->
+              <div class="chat-msg-wrap" [class.sent]="m.mittente === 'io'">
+                <div class="chat-bubble" [class.sent]="m.mittente === 'io'">
+                  {{ m.testo }}
+                  <span class="chat-bubble-ora">{{ m.ora }}</span>
+                </div>
+              </div>
+
+            </ng-container>
+          </div>
+
+          <!-- Input messaggio -->
+          <div class="chat-input-area">
+            <div class="input-group chat-input-group">
+              <input
+                type="text"
+                class="form-control chat-input"
+                placeholder="Scrivi un messaggio…"
+                [(ngModel)]="nuovoMessaggio"
+                (keydown.enter)="inviaMessaggio()"
+              >
+              <button class="btn chat-send-btn" (click)="inviaMessaggio()">
+                <i class="bi bi-send-fill"></i>
+              </button>
+            </div>
+          </div>
+
+        </ng-container>
+      </div>
+
+    </div>
+  </div>
+</div>
