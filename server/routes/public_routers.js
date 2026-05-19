@@ -31,4 +31,28 @@ router.get("/test-sessione",(req,res) =>{
     });
 })
 
+router.get('/get4ProdottiCasuali', async(req,res) =>{
+    //const maxResult = await db.query("SELECT MAX(id_prodotto) AS max_id FROM prodotto")
+    //const maxId = maxResult[0].max_id
+    const maxId = 20
+    console.log("Max ID:", maxId);
+    console.log(maxId)
+    let prodottiCasuali = [];
+    let numeriCasuali = [];
+    let idCasuale = 0;
+    let i = 0
+    while(i < 4){
+        idCasuale = Math.floor(Math.random()*maxId + 1)
+        while(numeriCasuali.includes(idCasuale)){
+            idCasuale = Math.floor(Math.random()*maxId + 1)
+        }
+        prodottiCasuali.push(await db.query("SELECT * FROM prodotto WHERE id_prodotto = ?",[idCasuale]));
+        numeriCasuali.push(idCasuale);
+        i++;
+    }
+
+    return res.json({ok:true,prodotti:prodottiCasuali});
+    
+})
+
 module.exports = router;

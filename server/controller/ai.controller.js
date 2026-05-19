@@ -9,8 +9,8 @@ const chatHistories = {};
 
 async function getAllProducts() {
   return await query(
-    `SELECT p.id_prodotto, p.nome, p.descrizione, p.prezzo,
-     u.nome AS venditore, c.nomeCategoria AS categoria
+   `SELECT p.id_prodotto, p.nome, p.descrizione, p.prezzo,
+     u.nome AS venditoreNome, u.cognome AS venditoreCognome, u.id_utente AS id_venditore, c.nomeCategoria AS categoria
      FROM prodotto p
      JOIN utente u ON p.id_venditore = u.id_utente
      JOIN categorie c ON p.id_categoria = c.id_categoria

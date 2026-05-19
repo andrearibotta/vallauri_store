@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Chat</title>
+  <style>
+    body { font-family: monospace; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    h2 { border-bottom: 2px solid #333; padding-bottom: 8px; }
+
+    .sezione { margin-bottom: 20px; }
+    label { display: block; font-size: 12px; color: #555; margin-bottom: 4px; }
+    input { width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 8px; border: 1px solid #ccc; }
+    button { padding: 8px 16px; cursor: pointer; }
+    button.primary { background: #2563eb; color: white; border: none; border-radius: 4px; }
+    button.secondary { background: #e5e7eb; border: 1px solid #ccc; border-radius: 4px; }
+
+    #status { padding: 8px; border-radius: 4px; font-size: 13px; margin-top: 8px; }
+    .connesso    { background: #dcfce7; color: #166534; }
+    .disconnesso { background: #fee2e2; color: #991b1b; }
+
+    #log {
+      background: #1e1e1e; color: #d4d4d4;
+      padding: 12px; border-radius: 6px;
+      height: 300px; overflow-y: auto;
+      font-size: 13px; line-height: 1.6;
+    }
+    .log-inviato  { color: #86efac; }
+    .log-ricevuto { color: #93c5fd; }
+    .log-errore   { color: #fca5a5; }
+    .log-sistema  { color: #e2e8f0; }
+  </style>
+</head>
+<body>
+
+<h2>🔌 Test Chat Socket.io</h2>
+
+<!-- STEP 1: Connessione -->
+<div class="sezione">
+  <h3>1. Connetti</h3>
+  <p style="font-size:13px;color:#555">
+    Devi essere già loggato sul server (cookie <code>token_accesso</code> presente).
+    Apri prima <a href="http://localhost:3000/api/auth/login" target="_blank">il login</a>, poi torna qui.
+  </p>
+  <button class="primary" onclick="connetti()">Connetti a Socket.io</button>
+  <div id="status" class="disconnesso">● Disconnesso</div>
+</div>
+
+<!-- STEP 2: Carica cronologia -->
+<div class="sezione">
+  <h3>2. Carica cronologia (REST)</h3>
+  <label>ID Destinatario</label>
+  <input id="destId" type="number" placeholder="es. 2">
+  <label>ID Prodotto</label>
+  <input id="prodId" type="number" placeholder="es. 1">
+  <button class="secondary" onclick="caricaCronologia()">Carica messaggi</button>
+</div>
+
+<!-- STEP 3: Invia messaggio -->
+<div class="sezione">
+  <h3>3. Invia messaggio</h3>
+  <label>Testo</label>
+  <input id="testo" type="text" placeholder="Ciao, è ancora disponibile?">
+  <button class="primary" onclick="inviaMex()">Invia</button>
+</div>
+
+<!-- LOG -->
+<div class="sezione">
+  <h3>📋 Log eventi</h3>
+  <div id="log"></div>
+  <button class="secondary" style="margin-top:8px" onclick="clearLog()">Pulisci log</button>
+</div>
+
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script>
+  let socket = null;
+
+  function log(msg, tipo = "sistema") {
+    const div = document.getElementById("log");
+    const riga = document.createElement("div");
+    riga.className = `log-${tipo}`;
+    riga.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    div.appendChild(riga);
+    div.scrollTop = div.scrollHeight;
+  }
+
+  function clearLog() {
+    document.getElementById("log").innerHTML = "";
+  }
+
+  function connetti() {
+    if (socket?.connected) {
+      log("Già connesso!", "sistema");
+      return;
+    }
+
+    socket = io("http://localhost:3000", {
+      withCredentials: true  // manda il cookie token_accesso
+    });
+
+    socket.on("connect", () => {
+      document.getElementById("status").textContent = `● Connesso (socket: ${socket.id})`;
+      document.getElementById("status").className = "connesso";
+      log(`Connesso con socket ID: ${socket.id}`, "sistema");
+    });
+
+    socket.on("disconnect", () => {
+      document.getElementById("status").textContent = "● Disconnesso";
+      document.getElementById("status").className = "disconnesso";
+      log("Disconnesso dal server", "sistema");
+    });
+
+    socket.on("connect_error", (err) => {
+      log(`Errore connessione: ${err.message}`, "errore");
+    });
+
+    // Conferma messaggio inviato
+    socket.on("message_sent", (msg) => {
+      log(`✅ Inviato [id:${msg.id_mess}] → "${msg.testo_messaggio}"`, "inviato");
+    });
+
+    // Messaggio ricevuto dall'altro utente
+    socket.on("receive_message", (msg) => {
+      log(`📨 Ricevuto da utente ${msg.id_mittente}: "${msg.testo_messaggio}"`, "ricevuto");
+    });
+
+    // Errore
+    socket.on("message_error", (err) => {
+      log(`❌ Errore: ${err.message}`, "errore");
+    });
+  }
+
+  function inviaMex() {
+    if (!socket?.connected) return log("Prima connettiti!", "errore");
+
+    const id_destinatario = Number(document.getElementById("destId").value);
+    const id_prodotto     = Number(document.getElementById("prodId").value);
+    const testo_messaggio = document.getElementById("testo").value.trim();
+
+    if (!id_destinatario || !id_prodotto || !testo_messaggio) {
+      return log("Compila tutti i campi", "errore");
+    }
+
+    socket.emit("send_message", { id_destinatario, id_prodotto, testo_messaggio });
+    log(`📤 Emit send_message → dest:${id_destinatario} prod:${id_prodotto} "${testo_messaggio}"`, "sistema");
+    document.getElementById("testo").value = "";
+  }
+
+  async function caricaCronologia() {
+    const id_dest = document.getElementById("destId").value;
+    const id_prod = document.getElementById("prodId").value;
+
+    if (!id_dest || !id_prod) return log("Inserisci ID destinatario e prodotto", "errore");
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/chat/${id_dest}/${id_prod}`, {
+        credentials: "include"
+      });
+      const data = await res.json();
+
+      if (!res.ok) return log(`REST errore: ${JSON.stringify(data)}`, "errore");
+
+      log(`📜 Cronologia (${data.length} messaggi):`, "sistema");
+      data.forEach(m => {
+        log(`  [${m.timestamp}] ${m.nome_mittente}: "${m.testo_messaggio}"`, "ricevuto");
+      });
+    } catch (err) {
+      log(`Fetch fallita: ${err.message}`, "errore");
+    }
+  }
+</script>
+</body>
+</html>
