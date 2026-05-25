@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../db/mysql');
+const passwordHashed = require('../middleware/passwordHash')
 
 router.get('/getAllUser', async (req, res) => {
     try {
@@ -113,5 +114,53 @@ router.get('/getProfilo/:id', async (req, res) => {
         return res.status(500).json({ error: "Errore interno del server" });
     }
 });
+
+router.post('/caricaProdotto',async(req,res,next) =>{
+    const {id_venditore,id_categoria,nome,descrizione,prezzo,data_pubblicazione} = req.body;
+    if(!id_venditore || !id_categoria || !nome || !descrizione || !prezzo || !data_pubblicazione){
+        return res.status(400).json({err: "Dati mancanti"})
+    }
+    const result = await db.query(
+        `INSERT INTO prodotto (id_venditore, id_categoria, nome, descrizione, prezzo, data_pubblicazione) VALUES (?,?,?,?,?,?)`,
+        [id_venditore,id_categoria,nome,descrizione,prezzo,data_pubblicazione]
+    )
+    return res.status(200).json({ok:true,result:result});
+})
+
+router.post('/modificaProfilo',async(req,res,next) =>{
+    const {id_utente,nome,cognome,passwordNuova,PasswordVecchia,email} = req.body;
+    if(!id_utente || !nome || !cognome || !passwordNuova || !PasswordVecchia || !email){
+        return res.status(400).json({err:"Dati Mancanti o sbagliati"})
+    }
+
+    const rows = await db.query(
+        `SELECT password_hash FROM utente WHERE id_utente = ?`,
+        [id_utente]
+    )
+
+    if (rows.length === 0) {
+        return res.status(404).json({ err: "Utente non trovato" });
+    }
+    
+    const hased = passwordHashed(PasswordVecchia)
+
+    console.log(hased)
+    console.log(rows[0].password_hash)
+
+    if(rows[0].password_hash !== hased){
+        return res.status(400).json({err:" Passwrod vecchia sbagliata "})
+    }
+
+    const newPasswordHased = passwordHashed(passwordNuova);
+
+    const result = await db.query(
+        `UPDATE utente 
+        SET nome = ?, cognome = ?, password_hash = ?, email = ? 
+        WHERE id_utente = ?`,
+        [nome,cognome,newPasswordHased,email,id_utente]
+    )
+
+    return res.status(200).json({ok:true})
+})
 
 module.exports = router;
