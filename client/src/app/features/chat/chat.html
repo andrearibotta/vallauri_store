@@ -19,10 +19,9 @@
         </div>
 
         <div class="chat-list">
-          @for (c of conversazioni; track c.id) {
+          @for (c of contattiContattati; track c.id) {
             <div
               class="chat-list-item"
-              [class.active]="c.id === conversazioneAttiva?.id"
               (click)="apriChat(c)"
             >
               <div class="chat-list-avatar" [style.background]="c.colore">
@@ -30,12 +29,12 @@
               </div>
               <div class="flex-grow-1 min-w-0">
                 <div class="d-flex align-items-center justify-content-between">
-                  <span class="chat-list-nome">{{ c.venditore }}</span>
-                  <span class="chat-list-ora">{{ c.ora }}</span>
+                  <span class="chat-list-nome">{{ c.nome }} {{ c.cognome }}</span>
+                  <span class="chat-list-ora">{{ c.ora }} 11.00</span>
                 </div>
-                <p class="chat-list-preview">{{ c.ultimoMessaggio }}</p>
+                <p class="chat-list-preview">{{ c.ultimoMessaggio }} MESS PROVA</p>
                 <span class="chat-list-prodotto">
-                  <i class="bi bi-tag me-1"></i>{{ c.nomeProdotto }}
+                  <i class="bi bi-tag me-1"></i>{{ c.nomeProdotto }} PRODOTTO PROVA
                 </span>
               </div>
               @if (c.nonLetti > 0) {

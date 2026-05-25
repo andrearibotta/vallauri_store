@@ -78,6 +78,13 @@ export class Navbar implements AfterViewInit, OnInit {
     });
   }
 
+  apriChat() {
+    this.router.navigate(['/chat'], {
+      state: { utenteLoggato: this.utenteLoggato }
+    });
+
+  }
+
   logout() {
     this.http.Post('/auth/logout', {}).subscribe({
       next:data =>{

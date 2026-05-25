@@ -53,8 +53,14 @@ router.post('/getAllContatti',async(req,res,next) =>{
   }
 
   const rows = await query(
-    `SELECT DISTINCT nome,cognome FROM messaggi,utente WHERE id_mittente = ? OR id_destinatario = ?`,
-    [id,id]
+    `SELECT id_utente, nome, cognome 
+      FROM utente 
+      WHERE id_utente IN (
+          SELECT id_destinatario FROM messaggi WHERE id_mittente = ?
+          UNION
+          SELECT id_mittente FROM messaggi WHERE id_destinatario = ?
+      ) AND id_utente != ?;`,
+    [id, id, id]
   )
 
   return res.status(200).json({ok:true,result:rows});

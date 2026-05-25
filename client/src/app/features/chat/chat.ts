@@ -35,9 +35,15 @@ interface Conversazione {
 export class Chat implements OnInit {
   constructor(private http: Httpcalls) { }
 
+  contattiContattati: any = []; //array che contiene le persone con cui ho parlato
+
   nuovoMessaggio = '';
   chatAperta     = false;
   conversazioneAttiva: Conversazione | null = null;
+
+  messaggiAttuali: any = [];
+
+  utenteLoggato: any = {}
 
   conversazioni: Conversazione[] = [
     {
@@ -91,10 +97,12 @@ export class Chat implements OnInit {
   ];
 
   ngOnInit() {
+    this.utenteLoggato = history.state.utenteLoggato
     //caricamento delle persone con cui ho chattato (per anteprima)
-    this.http.Get("api/chat/getAllContatti").subscribe({
+    this.http.Post("/chat/getAllContatti", {id: this.utenteLoggato.id}).subscribe({
       next: data => {
-        console.log("contatti: ", data)
+        this.contattiContattati = data.result;
+        console.log("contatti: ", this.contattiContattati)
       },
       error: err => {
 
@@ -102,10 +110,20 @@ export class Chat implements OnInit {
     })
   }
 
-  apriChat(c: Conversazione): void {
+  apriChat(c: any): void {
     this.conversazioneAttiva = c;
     c.nonLetti = 0;
     this.chatAperta = true;
+
+    this.http.Get("/chat/" + c.id_utente + "/1").subscribe({
+      next: data => {
+        console.log("messaggi: ", data)
+        this.messaggiAttuali = data;
+      },
+      error: err => {
+
+      }
+    })
   }
 
   chiudiChat(): void {
