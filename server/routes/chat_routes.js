@@ -46,4 +46,18 @@ router.get("/:id_destinatario/:id_prodotto", async (req, res) => {
   }
 });
 
+router.post('/getAllContatti',async(req,res,next) =>{
+  const {id} = req.body;
+  if(!id){
+    return res.status(400).json({err:"Mancanza di dati"});
+  }
+
+  const rows = await query(
+    `SELECT * FROM messaggi WHERE id_mittente = ? AND id_destinatario = ?`,
+    [id,id]
+  )
+
+  return res.status(200).json({ok:true});
+})
+
 module.exports = router;
