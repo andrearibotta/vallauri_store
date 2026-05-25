@@ -1,0 +1,147 @@
+<div class="carica-page" [formGroup]="annuncioForm">
+  <div class="container py-4 py-lg-5">
+
+    <nav class="carica-breadcrumb mb-4">
+      <a routerLink="/">Home</a>
+      <i class="bi bi-chevron-right"></i>
+      <a routerLink="/profilo">Profilo</a>
+      <i class="bi bi-chevron-right"></i>
+      <span>Nuovo annuncio</span>
+    </nav>
+
+    <div class="mb-4">
+      <h1 class="carica-title">Pubblica un annuncio</h1>
+      <p class="carica-subtitle">Compila i campi e metti in vendita il tuo articolo in pochi minuti.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-lg-8 col-xl-7">
+
+        <div class="carica-card mb-4">
+          <div class="carica-card-header">
+            <i class="bi bi-images me-2"></i>Foto
+            <span class="carica-card-hint ms-auto">Max 5 foto</span>
+          </div>
+          <div class="carica-card-body">
+            <div class="foto-grid">
+
+              <div class="foto-slot foto-slot-main"
+                   [class.has-image]="immaginiFormArray.at(0).value"
+                   (click)="triggerUpload(fileInput0)"
+                   (dragover)="$event.preventDefault()"
+                   (drop)="onDrop($event, 0)">
+
+                @if (immaginiFormArray.at(0).value) {
+                  <img [src]="immaginiFormArray.at(0).value" alt="Copertina" class="foto-preview">
+                  <button type="button" class="foto-remove-btn" (click)="rimuoviFoto($event, 0, fileInput0)">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                } @else {
+                  <div class="foto-placeholder">
+                    <div class="foto-placeholder-icon"><i class="bi bi-camera-fill"></i></div>
+                    <p class="foto-placeholder-text">Trascina o clicca<br>per la foto principale</p>
+                  </div>
+                }
+                <input #fileInput0 type="file" accept="image/*" class="d-none" (change)="onFileSelected($event, 0)">
+              </div>
+
+              <div class="foto-slots-secondary">
+                @for (i of [1, 2, 3, 4]; track i) {
+                  <div class="foto-slot foto-slot-small"
+                       [class.has-image]="immaginiFormArray.at(i).value"
+                       (click)="triggerUpload(fileInputSub)">
+
+                    @if (immaginiFormArray.at(i).value) {
+                      <img [src]="immaginiFormArray.at(i).value" class="foto-preview">
+                      <button type="button" class="foto-remove-btn" (click)="rimuoviFoto($event, i, fileInputSub)">
+                        <i class="bi bi-x"></i>
+                      </button>
+                    } @else {
+                      <div class="foto-placeholder"><i class="bi bi-plus-lg"></i></div>
+                    }
+                    <input #fileInputSub type="file" accept="image/*" class="d-none" (change)="onFileSelected($event, i)">
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="carica-card mb-4">
+          <div class="carica-card-header"><i class="bi bi-tag me-2"></i>Dettagli</div>
+          <div class="carica-card-body">
+
+            <div class="mb-3">
+              <label class="carica-label">Categoria</label>
+              <select formControlName="categoria" class="form-select carica-input">
+                <option value="" disabled>Scegli una categoria...</option>
+                <option value="Libri">Libri</option>
+                <option value="Appunti">Appunti</option>
+                <option value="Elettronica">Elettronica</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="carica-label">Titolo Annuncio</label>
+              <div class="input-group">
+                <input type="text" formControlName="nome" class="form-control carica-input" placeholder="Cosa vendi?">
+                <span class="input-group-text">{{ getCharCount('nome') }}/80</span>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="carica-label">Condizione</label>
+              <div class="condizione-grid">
+                @for (c of condizioni; track c.value) {
+                  <label class="condizione-option">
+                    <input type="radio" formControlName="condizione" [value]="c.value" class="d-none">
+                    <div class="condizione-card"
+                         [class]="c.colorClass"
+                         [class.selected]="annuncioForm.get('condizione')?.value === c.value">
+                      <span class="condizione-dot"></span>
+                      <span class="condizione-label">{{ c.label }}</span>
+                      <span class="condizione-desc">{{ c.desc }}</span>
+                    </div>
+                  </label>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="carica-card mb-4">
+          <div class="carica-card-header"><i class="bi bi-card-text me-2"></i>Descrizione</div>
+          <div class="carica-card-body">
+            <textarea formControlName="descrizione" class="form-control carica-textarea" rows="4"></textarea>
+            <div class="text-end small text-muted">{{ getCharCount('descrizione') }}/600</div>
+          </div>
+        </div>
+
+        <div class="carica-card mb-4">
+          <div class="carica-card-header"><i class="bi bi-currency-euro me-2"></i>Prezzo</div>
+          <div class="carica-card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-text">€</span>
+                  <input type="number" formControlName="prezzo" class="form-control carica-input">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-3">
+          <button type="button" routerLink="/profilo" class="btn btn-outline-secondary">Annulla</button>
+          <button type="submit"
+                  class="btn btn-pubblica"
+                  [disabled]="annuncioForm.invalid"
+                  (click)="onSubmit()">
+            <i class="bi bi-send me-2"></i>Pubblica ora
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,203 @@
+<div class="impostazioni-page">
+  <div class="container py-4 py-lg-5">
+
+    <nav class="impost-breadcrumb mb-4">
+      <a routerLink="/">Home</a>
+      <i class="bi bi-chevron-right"></i>
+      <a routerLink="/profilo">Profilo</a>
+      <i class="bi bi-chevron-right"></i>
+      <span>Modifica profilo</span>
+    </nav>
+
+    <form [formGroup]="profiloForm" (ngSubmit)="inviaModifiche()" class="row g-4 justify-content-center">
+      <div class="col-12 col-lg-8 col-xl-7">
+
+        <div class="impost-card mb-4">
+          <div class="impost-card-header">
+            <i class="bi bi-person-circle me-2"></i>Foto profilo
+          </div>
+          <div class="impost-card-body">
+            <div class="avatar-section">
+              <div class="impost-avatar">M</div>
+              <div class="avatar-info">
+                <p class="avatar-name">{{ datiUtente.nome }} {{ datiUtente.cognome }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="impost-card mb-4">
+          <div class="impost-card-header">
+            <i class="bi bi-person me-2"></i>Dati personali
+          </div>
+          <div class="impost-card-body">
+
+            <div class="row g-3 mb-3">
+              <div class="col-12 col-sm-6">
+                <label class="impost-label" for="nome">Nome</label>
+                <div class="input-group impost-input-group" [class.is-invalid]="f['nome'].touched && f['nome'].invalid">
+                  <span class="input-group-text impost-input-icon">
+                    <i class="bi bi-person"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="nome"
+                    class="form-control impost-input"
+                    formControlName="nome"
+                    [class.is-invalid]="f['nome'].touched && f['nome'].invalid"
+                  >
+                </div>
+                <div *ngIf="f['nome'].touched && f['nome'].invalid" class="invalid-feedback d-block">
+                  <span *ngIf="f['nome'].errors?.['required']">Il nome è obbligatorio.</span>
+                  <span *ngIf="f['nome'].errors?.['minlength']">Il nome deve avere almeno 2 caratteri.</span>
+                </div>
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <label class="impost-label" for="cognome">Cognome</label>
+                <div class="input-group impost-input-group" [class.is-invalid]="f['cognome'].touched && f['cognome'].invalid">
+                  <span class="input-group-text impost-input-icon">
+                    <i class="bi bi-person"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="cognome"
+                    class="form-control impost-input"
+                    formControlName="cognome"
+                    [class.is-invalid]="f['cognome'].touched && f['cognome'].invalid"
+                  >
+                </div>
+                <div *ngIf="f['cognome'].touched && f['cognome'].invalid" class="invalid-feedback d-block">
+                  <span *ngIf="f['cognome'].errors?.['required']">Il cognome è obbligatorio.</span>
+                  <span *ngIf="f['cognome'].errors?.['minlength']">Il cognome deve avere almeno 2 caratteri.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="impost-label" for="email">Email scolastica</label>
+              <div class="input-group impost-input-group" [class.is-invalid]="f['email'].touched && f['email'].invalid">
+                <span class="input-group-text impost-input-icon">
+                  <i class="bi bi-envelope"></i>
+                </span>
+                <input
+                  type="email"
+                  id="email"
+                  class="form-control impost-input"
+                  formControlName="email"
+                  [class.is-invalid]="f['email'].touched && f['email'].invalid"
+                >
+              </div>
+              <div *ngIf="f['email'].touched && f['email'].invalid" class="invalid-feedback d-block">
+                <span *ngIf="f['email'].errors?.['required']">L'email è obbligatoria.</span>
+                <span *ngIf="f['email'].errors?.['email']">Inserisci un indirizzo email valido.</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="impost-card mb-4">
+          <div class="impost-card-header">
+            <i class="bi bi-shield-lock me-2"></i>Sicurezza
+          </div>
+          <div class="impost-card-body">
+
+            <div class="mb-3">
+              <label class="impost-label" for="pwAttuale">Password attuale</label>
+              <div class="input-group impost-input-group" [class.is-invalid]="f['pass_vecchia'].touched && f['pass_vecchia'].invalid">
+                <span class="input-group-text impost-input-icon">
+                  <i class="bi bi-lock"></i>
+                </span>
+                <input
+                  type="password"
+                  id="pwAttuale"
+                  class="form-control impost-input"
+                  placeholder="Inserisci la password attuale"
+                  formControlName="pass_vecchia"
+                  [class.is-invalid]="f['pass_vecchia'].touched && f['pass_vecchia'].invalid"
+                >
+                <button class="input-group-text impost-input-icon impost-eye-btn" type="button" (click)="togglePw('pwAttuale', 'eyeAttuale')">
+                  <i class="bi bi-eye" id="eyeAttuale"></i>
+                </button>
+              </div>
+              <div *ngIf="f['pass_vecchia'].touched && f['pass_vecchia'].invalid" class="invalid-feedback d-block">
+                <span>La password attuale è richiesta per confermare le modifiche.</span>
+              </div>
+            </div>
+
+            <div class="pw-divider mb-3">
+              <span>Nuova password</span>
+            </div>
+
+            <div class="mb-3">
+              <label class="impost-label" for="pwNuova">Nuova password</label>
+              <div class="input-group impost-input-group" [class.is-invalid]="f['pass_nuova'].touched && f['pass_nuova'].invalid">
+                <span class="input-group-text impost-input-icon">
+                  <i class="bi bi-lock-fill"></i>
+                </span>
+                <input
+                  type="password"
+                  id="pwNuova"
+                  class="form-control impost-input"
+                  placeholder="Minimo 6 caratteri"
+                  formControlName="pass_nuova"
+                  (input)="aggiornaSicurezza()"
+                  [class.is-invalid]="f['pass_nuova'].touched && f['pass_nuova'].invalid"
+                >
+                <button class="input-group-text impost-input-icon impost-eye-btn" type="button" (click)="togglePw('pwNuova', 'eyeNuova')">
+                  <i class="bi bi-eye" id="eyeNuova"></i>
+                </button>
+              </div>
+              <div *ngIf="f['pass_nuova'].touched && f['pass_nuova'].invalid" class="invalid-feedback d-block">
+                <span *ngIf="f['pass_nuova'].errors?.['required']">La nuova password è obbligatoria.</span>
+                <span *ngIf="f['pass_nuova'].errors?.['minlength']">La password deve contenere almeno 6 caratteri.</span>
+              </div>
+
+              <div class="pw-strength-wrap mt-2" *ngIf="pwForza > 0">
+                <div class="pw-strength-bar">
+                  <div class="pw-strength-fill" [style.width.%]="pwForza * 25" [ngClass]="pwForzaClass"></div>
+                </div>
+                <span class="pw-strength-label" [ngClass]="pwForzaClass">{{ pwForzaLabel }}</span>
+              </div>
+            </div>
+
+            <div class="mb-1">
+              <label class="impost-label" for="pwConferma">Conferma nuova password</label>
+              <div class="input-group impost-input-group" [class.is-invalid]="(f['pass_conferma'].touched && f['pass_conferma'].invalid) || (profiloForm.touched && profiloForm.errors?.['passwordDiverse'])">
+                <span class="input-group-text impost-input-icon">
+                  <i class="bi bi-lock-fill"></i>
+                </span>
+                <input
+                  type="password"
+                  id="pwConferma"
+                  class="form-control impost-input"
+                  placeholder="Ripeti la nuova password"
+                  formControlName="pass_conferma"
+                  [class.is-invalid]="(f['pass_conferma'].touched && f['pass_conferma'].invalid) || (profiloForm.touched && profiloForm.errors?.['passwordDiverse'])"
+                >
+                <button class="input-group-text impost-input-icon impost-eye-btn" type="button" (click)="togglePw('pwConferma', 'eyeConferma')">
+                  <i class="bi bi-eye" id="eyeConferma"></i>
+                </button>
+              </div>
+              <div *ngIf="profiloForm.touched && profiloForm.errors?.['passwordDiverse']" class="invalid-feedback d-block">
+                <span>Le due password non corrispondono.</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="d-flex flex-column flex-sm-row gap-3 justify-content-end">
+          <a routerLink="/profilo" class="btn btn-annulla">
+            <i class="bi bi-x-lg me-2"></i>Annulla
+          </a>
+          <button type="submit" class="btn btn-salva" [disabled]="profiloForm.invalid">
+            <i class="bi bi-check-lg me-2"></i>Salva modifiche
+          </button>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>

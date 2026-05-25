@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Httpcalls } from '../../services/httpcalls';
 
 interface Messaggio {
   mittente: 'io' | 'altro';
@@ -15,7 +16,6 @@ interface Conversazione {
   venditore: string;
   iniziale: string;
   colore: string;
-  online: boolean;
   nomeProdotto: string;
   prezzo: string;
   ultimoMessaggio: string;
@@ -32,7 +32,9 @@ interface Conversazione {
   styleUrl: './chat.css'
 })
 
-export class Chat {
+export class Chat implements OnInit {
+  constructor(private http: Httpcalls) { }
+
   nuovoMessaggio = '';
   chatAperta     = false;
   conversazioneAttiva: Conversazione | null = null;
@@ -43,7 +45,6 @@ export class Chat {
       venditore: 'Mario Rossi',
       iniziale: 'M',
       colore: 'linear-gradient(135deg,#00b398,#00d4b0)',
-      online: true,
       nomeProdotto: 'T-shirt Bianca H&M',
       prezzo: '5,00',
       ultimoMessaggio: 'Ok perfetto, ci vediamo domani!',
@@ -62,7 +63,6 @@ export class Chat {
       venditore: 'Sara Bianchi',
       iniziale: 'S',
       colore: 'linear-gradient(135deg,#3b82f6,#60a5fa)',
-      online: false,
       nomeProdotto: 'Matematica Bergamini vol.2',
       prezzo: '8,00',
       ultimoMessaggio: 'È in buone condizioni, qualche sottolineatura a matita.',
@@ -78,7 +78,6 @@ export class Chat {
       venditore: 'Luca Mancini',
       iniziale: 'L',
       colore: 'linear-gradient(135deg,#f59e0b,#fbbf24)',
-      online: false,
       nomeProdotto: 'Cuffie JBL wireless',
       prezzo: '20,00',
       ultimoMessaggio: 'Le cuffie funzionano perfettamente!',
@@ -90,6 +89,18 @@ export class Chat {
       ]
     },
   ];
+
+  ngOnInit() {
+    //caricamento delle persone con cui ho chattato (per anteprima)
+    this.http.Get("api/chat/getAllContatti").subscribe({
+      next: data => {
+        console.log("contatti: ", data)
+      },
+      error: err => {
+
+      }
+    })
+  }
 
   apriChat(c: Conversazione): void {
     this.conversazioneAttiva = c;

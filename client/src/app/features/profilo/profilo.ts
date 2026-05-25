@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, effect, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Httpcalls } from '../../services/httpcalls';
 import { Controllologin } from '../../services/controllologin'; // 1. Importa il tuo servizio
 
@@ -18,7 +18,7 @@ export class Profilo implements OnInit {
   statoSelezionato: 'attivo' | 'venduto' = 'attivo'; // Serve per i tab degli annunci nell'HTML
 
   // 2. Inietta il servizio cl nel costruttore
-  constructor(private http: Httpcalls, private cdr: ChangeDetectorRef, private cl: Controllologin) {
+  constructor(private http: Httpcalls, private cdr: ChangeDetectorRef, private cl: Controllologin, private router: Router) {
     effect(() => {
       const datiUtenteDalservizio = this.cl.currentData();
 
@@ -73,6 +73,12 @@ export class Profilo implements OnInit {
       error: (err) => {
         console.error("Errore nella richiesta del profilo:", err);
       }
+    });
+  }
+
+  inviaDatiImpostazioni() {
+    this.router.navigate(['/impostazioni'], {
+      state: { utenteLoggato: this.utenteLoggato }
     });
   }
 }
