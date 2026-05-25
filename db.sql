@@ -24,16 +24,23 @@ CREATE TABLE utente (
     google_id VARCHAR(255) UNIQUE
 );
 
+CREATE TABLE condizioni (
+    id_condizione INT AUTO_INCREMENT PRIMARY KEY,
+    nome_condizione ENUM('nuovo', 'ottimo', 'buono', 'discreto') NOT NULL UNIQUE
+);
+
 CREATE TABLE prodotto (
     id_prodotto INT AUTO_INCREMENT PRIMARY KEY,
     id_venditore INT NOT NULL,
     id_categoria INT NOT NULL,
+    id_condizione INT,
     nome VARCHAR(100) NOT NULL, -- Nuovo campo per la ricerca veloce
     descrizione TEXT NOT NULL,  -- Testo lungo per i dettagli
     prezzo DECIMAL(10,2) NOT NULL,
     data_pubblicazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_venditore) REFERENCES utente(id_utente) ON DELETE CASCADE,
-    FOREIGN KEY (id_categoria) REFERENCES categorie(id_categoria)
+    FOREIGN KEY (id_categoria) REFERENCES categorie(id_categoria),
+    FOREIGN KEY (id_condizione) REFERENCES condizioni(id_condizione) ON DELETE SET NULL
 );
 
 CREATE TABLE lezione (
@@ -108,6 +115,12 @@ CREATE TABLE segnalazioni (
     FOREIGN KEY (id_segnalato) REFERENCES utente(id_utente) ON DELETE CASCADE
 );
 
+-- NUOVO INSERIMENTO: Popolamento tabella condizioni
+INSERT INTO condizioni (nome_condizione) VALUES
+('nuovo'),
+('ottimo'),
+('buono'),
+('discreto');
 
 -- 3. INSERIMENTO CATEGORIE
 INSERT INTO categorie (nomeCategoria, descrizione) VALUES
