@@ -53,11 +53,11 @@ router.post('/getAllContatti',async(req,res,next) =>{
   }
 
   const rows = await query(
-    `SELECT * FROM messaggi WHERE id_mittente = ? AND id_destinatario = ?`,
+    `SELECT DISTINCT nome,cognome FROM messaggi,utente WHERE id_mittente = ? OR id_destinatario = ?`,
     [id,id]
   )
 
-  return res.status(200).json({ok:true});
+  return res.status(200).json({ok:true,result:rows});
 })
 
 module.exports = router;
