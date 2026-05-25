@@ -115,6 +115,12 @@ CREATE TABLE segnalazioni (
     FOREIGN KEY (id_segnalato) REFERENCES utente(id_utente) ON DELETE CASCADE
 );
 
+-- NUOVO INSERIMENTO: Popolamento tabella condizioni
+INSERT INTO condizioni (nome_condizione) VALUES
+('nuovo'),
+('ottimo'),
+('buono'),
+('discreto');
 
 -- 3. INSERIMENTO CATEGORIE
 INSERT INTO categorie (nomeCategoria, descrizione) VALUES
