@@ -107,12 +107,12 @@ export class Impostazioni implements OnInit {
       nome: formValues.nome,
       cognome: formValues.cognome,
       email: formValues.email,
-      password_nuova: formValues.pass_nuova,
-      password_vecchia: formValues.pass_vecchia
+      passwordNuova: formValues.pass_nuova,
+      passwordVecchia: formValues.pass_vecchia
     };
 
-
-    this.http.Post('/auth/login', data).subscribe({
+    console.log("dati modificati: ", data)
+    this.http.Post('/private/modificaProfilo', data).subscribe({
       next: (res) => {
         console.log("modifica inviata: ", res);
         this.router.navigate(['/home']);

@@ -128,8 +128,9 @@ router.post('/caricaProdotto',async(req,res,next) =>{
 })
 
 router.post('/modificaProfilo',async(req,res,next) =>{
-    const {id_utente,nome,cognome,passwordNuova,PasswordVecchia,email} = req.body;
-    if(!id_utente || !nome || !cognome || !passwordNuova || !PasswordVecchia || !email){
+    const {id_utente,nome,cognome,passwordNuova,passwordVecchia,email} = req.body;
+
+    if(!id_utente || !nome || !cognome || !passwordNuova || !passwordVecchia || !email){
         return res.status(400).json({err:"Dati Mancanti o sbagliati"})
     }
 
@@ -142,10 +143,12 @@ router.post('/modificaProfilo',async(req,res,next) =>{
         return res.status(404).json({ err: "Utente non trovato" });
     }
     
-    const hased = passwordHashed(PasswordVecchia)
+    const hased = passwordHashed(passwordVecchia)
 
-    console.log(hased)
-    console.log(rows[0].password_hash)
+    console.log("password nuova: ", passwordNuova)
+    console.log("password vecchia: ", passwordVecchia)
+    console.log("hased: ", hased)
+    console.log("rows [0]: ", rows[0].password_hash)
 
     if(rows[0].password_hash !== hased){
         return res.status(400).json({err:" Passwrod vecchia sbagliata "})
