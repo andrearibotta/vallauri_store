@@ -2,7 +2,9 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../db/mysql');
-const passwordHashed = require('../middleware/passwordHash')
+const passwordHash = require('../middleware/passwordHash')
+const jwt = require('jsonwebtoken');
+const verifyToken = require("../middleware/verifyToken");
 
 router.get('/getAllUser', async (req, res) => {
     try {
@@ -127,43 +129,71 @@ router.post('/caricaProdotto',async(req,res,next) =>{
     return res.status(200).json({ok:true,result:result});
 })
 
-router.post('/modificaProfilo',async(req,res,next) =>{
-    const {id_utente,nome,cognome,passwordNuova,passwordVecchia,email} = req.body;
+router.post('/modificaProfilo', async (req, res, next) => {
+    try {
+        const { id_utente, nome, cognome, passwordNuova, passwordVecchia, email } = req.body;
 
-    if(!id_utente || !nome || !cognome || !passwordNuova || !passwordVecchia || !email){
-        return res.status(400).json({err:"Dati Mancanti o sbagliati"})
+        // 1. Validazione input obbligatori
+        if (!id_utente || !nome || !cognome || !passwordNuova || !passwordVecchia || !email) {
+            return res.status(400).json({ err: "Dati Mancanti o sbagliati" });
+        }
+
+        // 2. Recupero utente dal DB (prendiamo anche google_id per il payload del JWT)
+        const rows = await db.query(
+            `SELECT password_hash, google_id FROM utente WHERE id_utente = ?`,
+            [id_utente]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ err: "Utente non trovato" });
+        }
+
+        const user = rows[0];
+
+        // 3. Controllo della vecchia password usando passwordHash (corretto il nome della funzione)
+        const hashedOld = passwordHash(passwordVecchia);
+
+        if (user.password_hash !== hashedOld) {
+            return res.status(400).json({ err: "Password vecchia sbagliata" });
+        }
+
+        // 4. Hash della nuova password e aggiornamento nel DB
+        const newPasswordHashed = passwordHash(passwordNuova);
+
+        await db.query(
+            `UPDATE utente 
+            SET nome = ?, cognome = ?, password_hash = ?, email = ? 
+            WHERE id_utente = ?`,
+            [nome, cognome, newPasswordHashed, email, id_utente]
+        );
+
+        // 5. AGGIORNAMENTO DEI COOKIE CON I NUOVI VALORI
+        // Prepariamo il payload aggiornato
+        const payload = {
+            id: id_utente,
+            email: email,
+            nome: nome,
+            cognome: cognome,
+            google_id: user.google_id // Manteniamo il google_id se presente
+        };
+
+        const secretKey = process.env.JWT_SECRET || 'segreto_di_sviluppo';
+        const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
+
+        // Sovrascriviamo il cookie precedente con il nuovo token
+        res.cookie('token_accesso', token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: false, // Imposta a true in produzione (HTTPS)
+            maxAge: 1000 * 60 * 60 * 24 // 1 giorno
+        });
+
+        // 6. Risposta di successo con i dati aggiornati
+        return res.status(200).json({ ok: true, user: payload });
+
+    } catch (err) {
+        next(err);
     }
-
-    const rows = await db.query(
-        `SELECT password_hash FROM utente WHERE id_utente = ?`,
-        [id_utente]
-    )
-
-    if (rows.length === 0) {
-        return res.status(404).json({ err: "Utente non trovato" });
-    }
-    
-    const hased = passwordHashed(passwordVecchia)
-
-    console.log("password nuova: ", passwordNuova)
-    console.log("password vecchia: ", passwordVecchia)
-    console.log("hased: ", hased)
-    console.log("rows [0]: ", rows[0].password_hash)
-
-    if(rows[0].password_hash !== hased){
-        return res.status(400).json({err:" Passwrod vecchia sbagliata "})
-    }
-
-    const newPasswordHased = passwordHashed(passwordNuova);
-
-    const result = await db.query(
-        `UPDATE utente 
-        SET nome = ?, cognome = ?, password_hash = ?, email = ? 
-        WHERE id_utente = ?`,
-        [nome,cognome,newPasswordHased,email,id_utente]
-    )
-
-    return res.status(200).json({ok:true})
-})
+});
 
 module.exports = router;

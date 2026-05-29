@@ -1,16 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Httpcalls } from '../../services/httpcalls';
+import {Controllologin} from '../../services/controllologin';
 
 @Component({
   selector: 'impostazioni',
+  standalone: true,
   imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './impostazioni.html',
   styleUrl: './impostazioni.css',
 })
 export class Impostazioni implements OnInit {
+  mostraSuccesso = false;
+  messaggioErrore: string | null = null;
 
   profiloForm!: FormGroup;
   datiUtente: any = {};
@@ -22,22 +26,34 @@ export class Impostazioni implements OnInit {
   constructor(
     private fb: FormBuilder,
     private http: Httpcalls,
-    private router: Router
+    private router: Router,
+    private cl: Controllologin,
+    private cdr: ChangeDetectorRef
   ) {
     this.inizializzaForm();
   }
 
   ngOnInit() {
-    this.datiUtente = history.state.utenteLoggato || {};
-    console.log(this.datiUtente);
+    this.http.Get('/auth/me').subscribe({
+      next: (data) => {
+        console.log("Utente autenticato via cookie:", data.user);
+        this.datiUtente = data.user;
+        this.cl.updateData(data.user);
 
-    if (this.datiUtente) {
-      this.profiloForm.patchValue({
-        nome: this.datiUtente.nome || '',
-        cognome: this.datiUtente.cognome || '',
-        email: this.datiUtente.email || ''
-      });
-    }
+        if (this.datiUtente) {
+          this.profiloForm.patchValue({
+            nome: this.datiUtente.nome || '',
+            cognome: this.datiUtente.cognome || '',
+            email: this.datiUtente.email || ''
+          });
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.log("Utente non loggato o sessione scaduta:", err);
+        this.cl.clearData();
+      }
+    });
   }
 
   private inizializzaForm(): void {
@@ -100,6 +116,10 @@ export class Impostazioni implements OnInit {
       return;
     }
 
+    this.mostraSuccesso = false;
+    this.messaggioErrore = null;
+    this.cdr.detectChanges();
+
     const formValues = this.profiloForm.value;
 
     let data: any = {
@@ -115,10 +135,22 @@ export class Impostazioni implements OnInit {
     this.http.Post('/private/modificaProfilo', data).subscribe({
       next: (res) => {
         console.log("modifica inviata: ", res);
-        this.router.navigate(['/home']);
+        this.mostraSuccesso = true;
+        this.cdr.detectChanges();
+
+        setTimeout(() => {
+          this.router.navigate(['/home']);
+        }, 5000);
       },
       error: (err) => {
         console.error("Errore durante il salvataggio", err);
+
+        if (err?.error?.err) {
+          this.messaggioErrore = err.error.err;
+        } else {
+          this.messaggioErrore = "Si è verificato un errore imprevisto durante il salvataggio.";
+        }
+        this.cdr.detectChanges();
       }
     });
   }

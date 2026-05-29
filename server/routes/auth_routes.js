@@ -167,23 +167,24 @@ router.post("/completa-registrazione", verifyToken(), async (req, res, next) => 
             return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
         }
 
-        const pending = req.user;
-        if (!pending) {
+        // req.user viene popolato dal middleware verifyToken() leggendo il cookie 'token_accesso'
+        const pending = req.user; 
+        if (!pending || !pending.email) {
             return res.status(400).json({ error: "Nessuna registrazione in corso o sessione scaduta" });
         }
 
         // ✅ Hash della password fatto correttamente
         const hashed = passwordHash(password);
 
-        // ✅ Query al DB con la password hashata
-        const result = await db.query(
-            "INSERT INTO utente (nome, cognome, email, google_id, password_hash) VALUES(?,?,?,?,?)",
-            [pending.nome, pending.cognome, pending.email, pending.google_id, hashed]
+        // ✅ MODIFICA QUI: Trasformato da INSERT a UPDATE usando l'email del token
+        await db.query(
+            "UPDATE utente SET password_hash = ? WHERE email = ?",
+            [hashed, pending.email]
         );
 
-        // ✅ JWT creato DOPO l'inserimento
+        // ✅ Ricreiamo il JWT includendo anche i vecchi dati, pronti per l'uso
         const payload = {
-            id: result.insertId,
+            id: pending.id, // L'id dell'utente salvato precedentemente nella callback di Google
             email: pending.email,
             nome: pending.nome,
             cognome: pending.cognome,
@@ -193,15 +194,16 @@ router.post("/completa-registrazione", verifyToken(), async (req, res, next) => 
         const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
         const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
 
+        // Aggiorniamo il cookie con il payload definitivo (opzionale se i campi base non sono cambiati, ma consigliato)
         res.cookie('token_accesso', token, {
             httpOnly: true,
             sameSite: "lax",
-            secure: false,
+            secure: false, // Imposta a true in produzione con HTTPS
             maxAge: 1000 * 60 * 60 * 24
         });
 
-        // ✅ Una sola risposta, alla fine
-        return res.json({ ok: true, message: "Registrazione completata", user: payload });
+        // ✅ Una sola risposta di successo
+        return res.json({ ok: true, message: "Registrazione completata con successo", user: payload });
 
     } catch (err) {
         next(err);
