@@ -19,12 +19,26 @@ export class Home implements OnInit{
     this.http.Get('/auth/me').subscribe({
       next: (data) => {
         console.log("Utente autenticato via cookie:", data);
+        console.log(data.user.nome)
+        console.log(data.user.state)
         this.cl.updateData(data.user);
+        if(data.user.state == "register"){
+          this.http.Post('/email/conntact',{name:data.user.nome,email:data.user.email,subject:"Benvenuto in Vallauristore",htmlMessage:`<h2>Benvenuto in Vallauristore</h2> Grazie per esserti unito alla comunity di vallauristore ${data.user.nome}`}).subscribe({
+          next: (response) =>{
+            console.log(response)
+          },
+          error: (err) =>{
+            console.log(err)
+          }
+        })
+        }
       },
       error: (err) => {
         console.log("Utente non loggato o sessione scaduta:", err);
         this.cl.clearData();
       }
     });
+
+
   }
 }

@@ -115,11 +115,20 @@ export class Login implements AfterViewInit, OnInit {
     data.password = this.rpwd;
     data.idClasse = this.classesel;
 
-    console.log(data)
     this.http.Post('/auth/register',{ data }).subscribe({
       next:data =>{
-        this.router.navigate(['/home']);
+        console.log(data)
+        console.log(this.rnome)
+        this.http.Post('/email/conntact',{name:this.rnome,email:this.remail,subject:"Benvenuto in Vallauristore",htmlMessage:`<h2>Benvenuto in Vallauristore</h2> Grazie per esserti unito alla comunity di vallauristore ${this.rnome}`}).subscribe({
+          next: (response) =>{
+            console.log(response)
+          },
+          error: (err) =>{
+            console.log(err)
+          }
+        })
         console.log("REGISTRATO CON SUCCESSO")
+        this.router.navigate(['/home']);
       },
       error: err => {
         console.error(err)

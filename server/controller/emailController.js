@@ -1,31 +1,22 @@
+const { testConnection } = require('../db/mysql');
 const {sendEmail} = require('../lib/emailService');
 
 const sendContantEmail = async (req, res) => {
-    console.log("ciao")
     try {
-        const { name, email, message, subject } = req.body;
+        const { name, email, subject ,htmlMessage } = req.body;
 
-        if (!name || !email || !message) {
+        if (!name || !email ) {
             return res.status(400).json({
                 error: "Nome, email e messaggio sono obbligatori"
             });
         }
+        const emailSubject = subject
 
-        const emailSubject = subject || `Nuovo messaggio da ${name}`;
-        const html = `
-            <h2>Nuovo messaggio di contatto</h2>
-            <p><strong>Nome:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Messaggio:</strong></p>
-            <p>${message}</p>
-        `;
-        const text = `Nuovo messaggio di contatto\n\nNome: ${name}\nEmail: ${email}\n\nMessaggio:\n${message}`;
-
+        const html = htmlMessage;
         const result = await sendEmail(
-            process.env.CONTACT_EMAIL || process.env.SMTP_USER,
+            email,
             emailSubject,
             html,
-            text
         );
 
         if (result.success) {

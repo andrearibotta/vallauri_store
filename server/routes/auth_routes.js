@@ -6,6 +6,8 @@ const router = express.Router();
 const db = require("../db/mysql");
 const verifyToken = require("../middleware/verifyToken");
 const passwordHash = require('../middleware/passwordHash');
+const crypto = require('crypto');
+const { sendEmail } = require('../lib/emailService');
 
 // ─── Login classico ──────────────────────────────────────────────────────────
 router.post("/login", async(req, res, next) => {
@@ -72,13 +74,30 @@ router.post("/register",async(req,res,next) =>{
             return res.status(400).json({err:'Email gia registrata'})
         }
         const hashed = passwordHash(password)
-    
+        
         const result = await db.query(
             "INSERT INTO utente (nome, cognome, email,password_hash) VALUES(?,?,?,?)",
             [nome, cognome, email,hashed]
         )
+        const payload = {
+            id:result.insertId,
+            email: email,
+            nome: nome,
+            cognome: cognome,
+        }
+
+        const secretKey = process.env.JWT_SECRET || 'segreto_di_sviluppo';
+        const token = jwt.sign(payload, secretKey, {expiresIn:'1d'});
+
+        res.cookie('token_accesso',token,{
+            httpOnly:true,
+            sameSite:'lax',
+            secure:false,
+            maxAge:1000*60*60*24
+        })
+        
+        return res.status(200).json({ user: payload });
     
-        return res.status(200).json({result:result});
     }
     catch(err){
         next(err);
@@ -128,7 +147,8 @@ router.get("/google/callback",
                 email: req.user.email,
                 nome: req.user.nome,
                 cognome: req.user.cognome,
-                google_id: req.user.google_id
+                google_id: req.user.google_id,
+                state: req.user.state
             };
 
             const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
@@ -169,6 +189,7 @@ router.post("/completa-registrazione", verifyToken(), async (req, res, next) => 
 
         // req.user viene popolato dal middleware verifyToken() leggendo il cookie 'token_accesso'
         const pending = req.user; 
+        
         if (!pending || !pending.email) {
             return res.status(400).json({ error: "Nessuna registrazione in corso o sessione scaduta" });
         }
@@ -188,7 +209,8 @@ router.post("/completa-registrazione", verifyToken(), async (req, res, next) => 
             email: pending.email,
             nome: pending.nome,
             cognome: pending.cognome,
-            google_id: pending.google_id
+            google_id: pending.google_id,
+            state: pending.state
         };
 
         const secretKey = process.env.JWT_SECRET || "segreto_di_sviluppo";
@@ -225,6 +247,254 @@ router.get("/me", verifyToken() ,(req, res) => {
 router.post("/logout", (req, res, next) => {
     res.clearCookie('token_accesso');
     res.json({ ok: true, message: "Logout effettuato con successo", requestId: req.id });
+});
+
+router.get("/forgot-password", (req, res) => {
+    res.render("forgot-password.pug", { error: null, success: null });
+});
+
+router.post("/forgot-password", async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.render("forgot-password", {
+                error: "Inserisci un'email valida.",
+                success: null
+            });
+        }
+
+        const rows = await db.query(
+            "SELECT id_utente, nome FROM utente WHERE email = ? LIMIT 1",
+            [email]
+        );
+        const user = rows[0];
+
+        // Risposta sempre neutra: non rivela se l'email esiste
+        if (!user) {
+            return res.render("forgot-password", {
+                error: null,
+                success: "Se l'email è registrata riceverai il codice a breve."
+            });
+        }
+
+        // Genera codice 6 cifre e scadenza 15 minuti
+        const code   = crypto.randomInt(100000, 999999).toString();
+        const expiry = new Date(Date.now() + 15 * 60 * 1000);
+
+        await db.query(
+            "UPDATE utente SET reset_code = ?, reset_code_expiry = ? WHERE id_utente = ?",
+            [code, expiry, user.id_utente]
+        );
+
+        // Usa il tuo emailService già funzionante
+        await sendEmail(
+            email,
+            "Recupero password — VallauriStore",
+            `
+            <div style="font-family: sans-serif; max-width: 420px; margin: auto;">
+                <h2>Ciao ${user.nome}!</h2>
+                <p>Hai richiesto il recupero della tua password su <strong>VallauriStore</strong>.</p>
+                <p>Il tuo codice di verifica è:</p>
+                <div style="
+                    font-size: 2.5rem;
+                    font-weight: bold;
+                    letter-spacing: 12px;
+                    text-align: center;
+                    background: #f4f4f4;
+                    border-radius: 10px;
+                    padding: 20px;
+                    margin: 20px 0;
+                    color: #222;
+                ">
+                    ${code}
+                </div>
+                <p>Il codice è valido per <strong>15 minuti</strong>.</p>
+                <p style="color: #888; font-size: 0.85rem;">
+                    Se non hai richiesto il recupero, ignora questa email.
+                </p>
+            </div>
+            `,
+            `Il tuo codice di recupero password è: ${code} (valido 15 minuti)`
+        );
+
+        // Salva l'email in un cookie firmato temporaneo (niente sessioni, coerente col tuo stack)
+        const resetToken = jwt.sign(
+            { email, purpose: 'reset' },
+            process.env.JWT_SECRET || 'segreto_di_sviluppo',
+            { expiresIn: '15m' }
+        );
+
+        res.cookie('reset_token', resetToken, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: false,
+            maxAge: 15 * 60 * 1000 // 15 minuti
+        });
+
+        return res.render("verify-code", {
+            error: null,
+            success: "Codice inviato! Controlla la tua email."
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── Verify Code ─────────────────────────────────────────────────────────────
+router.get("/verify-code", (req, res) => {
+    // Controlla che il cookie reset_token esista
+    if (!req.cookies?.reset_token) {
+        return res.redirect("forgot-password");
+    }
+    res.render("verify-code", { error: null });
+});
+
+router.post("/verify-code", async (req, res, next) => {
+    try {
+        const resetToken = req.cookies?.reset_token;
+        if (!resetToken) return res.redirect("forgot-password");
+
+        // Verifica e decodifica il cookie JWT temporaneo
+        let decoded;
+        try {
+            decoded = jwt.verify(resetToken, process.env.JWT_SECRET || 'segreto_di_sviluppo');
+        } catch (e) {
+            res.clearCookie('reset_token');
+            return res.redirect("api/auth/forgot-password");
+        }
+
+        if (decoded.purpose !== 'reset') return res.redirect("/forgot-password");
+
+        const { code } = req.body;
+        const email = decoded.email;
+
+        const rows = await db.query(
+            "SELECT reset_code, reset_code_expiry FROM utente WHERE email = ? LIMIT 1",
+            [email]
+        );
+        const user = rows[0];
+
+        if (!user || !user.reset_code) {
+            return res.render("verify-code", {
+                error: "Nessun codice attivo. Richiedi un nuovo codice."
+            });
+        }
+
+        // Controlla scadenza
+        if (new Date() > new Date(user.reset_code_expiry)) {
+            await db.query(
+                "UPDATE utente SET reset_code = NULL, reset_code_expiry = NULL WHERE email = ?",
+                [email]
+            );
+            res.clearCookie('reset_token');
+            return res.render("verify-code", {
+                error: "Il codice è scaduto. Richiedi un nuovo codice."
+            });
+        }
+
+        // Controlla il codice
+        if (code.trim() !== user.reset_code) {
+            return res.render("verify-code", {
+                error: "Codice errato. Ricontrolla l'email e riprova."
+            });
+        }
+
+        // ✅ Codice corretto — emette un nuovo cookie con verified: true
+        const verifiedToken = jwt.sign(
+            { email, purpose: 'reset', verified: true },
+            process.env.JWT_SECRET || 'segreto_di_sviluppo',
+            { expiresIn: '15m' }
+        );
+
+        res.clearCookie('reset_token');
+        res.cookie('reset_verified_token', verifiedToken, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: false,
+            maxAge: 15 * 60 * 1000
+        });
+
+        return res.redirect("reset-password");
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── Reset Password ───────────────────────────────────────────────────────────
+router.get("/reset-password", (req, res) => {
+    if (!req.cookies?.reset_verified_token) {
+        return res.redirect("/forgot-password");
+    }
+
+    // Verifica che il token sia valido
+    try {
+        const decoded = jwt.verify(
+            req.cookies.reset_verified_token,
+            process.env.JWT_SECRET || 'segreto_di_sviluppo'
+        );
+        if (!decoded.verified) return res.redirect("/forgot-password");
+    } catch (e) {
+        return res.redirect("/forgot-password");
+    }
+
+    res.render("reset-password", { error: null });
+});
+
+router.post("/reset-password", async (req, res, next) => {
+    try {
+        const verifiedToken = req.cookies?.reset_verified_token;
+        if (!verifiedToken) return res.redirect("/forgot-password");
+
+        let decoded;
+        try {
+            decoded = jwt.verify(verifiedToken, process.env.JWT_SECRET || 'segreto_di_sviluppo');
+        } catch (e) {
+            res.clearCookie('reset_verified_token');
+            return res.redirect("/forgot-password");
+        }
+
+        if (!decoded.verified || decoded.purpose !== 'reset') {
+            return res.redirect("/forgot-password");
+        }
+
+        const { password, confirmPassword } = req.body;
+
+        if (!password || !confirmPassword) {
+            return res.render("reset-password", { error: "Compila entrambi i campi." });
+        }
+
+        if (password !== confirmPassword) {
+            return res.render("reset-password", { error: "Le password non coincidono." });
+        }
+
+        if (password.length < 6) {
+            return res.render("reset-password", {
+                error: "La password deve essere di almeno 6 caratteri."
+            });
+        }
+
+        // Usa il tuo passwordHash, identico al login/register
+        const hashed = passwordHash(password);
+
+        await db.query(
+            `UPDATE utente 
+             SET password_hash = ?, reset_code = NULL, reset_code_expiry = NULL 
+             WHERE email = ?`,
+            [hashed, decoded.email]
+        );
+
+        // Pulizia cookie temporanei
+        res.clearCookie('reset_verified_token');
+
+        // Redirect al login (adatta il path al tuo frontend)
+        return res.redirect("http://localhost:4200");
+
+    } catch (err) {
+        next(err);
+    }
 });
 
 module.exports = router;

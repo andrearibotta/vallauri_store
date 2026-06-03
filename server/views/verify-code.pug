@@ -1,0 +1,195 @@
+block content
+  .auth-page
+    .auth-card
+      .auth-icon
+        svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round')
+          path(d='M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z')
+
+      h1.auth-title Inserisci il codice
+      p.auth-subtitle
+        | Abbiamo inviato un codice a 6 cifre alla tua email.
+        br
+        span.expire-badge
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor')
+            path(fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z' clip-rule='evenodd')
+          | Scade tra 15 minuti
+
+      if error
+        .auth-alert.auth-alert--error
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor')
+            path(fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z' clip-rule='evenodd')
+          span= error
+
+      form.auth-form(method='POST' action='/api/auth/verify-code')
+        .form-group
+          label.form-label Codice di verifica
+          input.otp-input(
+            type='text'
+            name='code'
+            maxlength='6'
+            minlength='6'
+            placeholder='• • • • • •'
+            inputmode='numeric'
+            pattern='[0-9]{6}'
+            required
+            autofocus
+          )
+        button.auth-btn(type='submit')
+          span Verifica codice
+          svg(xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor')
+            path(fill-rule='evenodd' d='M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z' clip-rule='evenodd')
+
+      .auth-footer
+        a.auth-link(href='/api/auth/forgot-password') Non hai ricevuto il codice? Reinvia
+
+style.
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: rgba(255,255,255,0.07);
+    --accent: #6c63ff;
+    --accent2: #a78bfa;
+    --text: #f0f0f5;
+    --text-muted: #6b6b80;
+    --error: #ff6b6b;
+    --radius: 16px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .auth-page {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(108,99,255,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 80% 90%, rgba(167,139,250,0.08) 0%, transparent 50%),
+      var(--bg);
+  }
+
+  .auth-card {
+    width: 100%; max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.5rem 2.5rem 2rem;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(108,99,255,0.08);
+    animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .auth-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(167,139,250,0.1));
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem;
+    color: var(--accent2);
+  }
+  .auth-icon svg { width: 24px; height: 24px; }
+
+  .auth-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem; font-weight: 700;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.02em;
+  }
+
+  .auth-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+
+  .expire-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.78rem;
+    color: rgba(167,139,250,0.7);
+  }
+  .expire-badge svg { width: 13px; height: 13px; }
+
+  .auth-alert {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
+  }
+  .auth-alert svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .auth-alert--error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.25); color: #ff9999; }
+
+  .auth-form { display: flex; flex-direction: column; gap: 1.25rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .form-label {
+    font-size: 0.8rem; font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .otp-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    font-family: 'Syne', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.6em;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .otp-input::placeholder { color: rgba(107,107,128,0.4); letter-spacing: 0.5em; }
+  .otp-input:focus {
+    border-color: rgba(108,99,255,0.5);
+    box-shadow: 0 0 0 3px rgba(108,99,255,0.12);
+  }
+
+  .auth-btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    color: #fff; border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 4px 20px rgba(108,99,255,0.35);
+    margin-top: 0.25rem;
+  }
+  .auth-btn svg { width: 16px; height: 16px; }
+  .auth-btn:hover { opacity: 0.9; box-shadow: 0 6px 28px rgba(108,99,255,0.45); }
+  .auth-btn:active { transform: scale(0.98); }
+
+  .auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .auth-link {
+    color: var(--text-muted); text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+  }
+  .auth-link:hover { color: var(--accent2); }

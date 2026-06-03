@@ -8,6 +8,7 @@ const dbRoutes      = require("./db_routes");
 const privateRoutes = require("./private_routes");
 const aiRoutes      = require("./ai_router");
 const chatRoutes    = require("./chat_routes");   // ← NUOVO
+const emailRotes    = require("./emailRotes")
 
 const verifyToken = require("../middleware/verifyToken");
 
@@ -19,5 +20,6 @@ router.use("/db",      dbRoutes);
 router.use("/private", verifyToken(), privateRoutes);
 router.use("/ai",      aiRoutes);
 router.use("/chat",    verifyToken(), chatRoutes);  // ← NUOVO (protetta da JWT)
+router.use("/email",   emailRotes)
 
 module.exports = router;
