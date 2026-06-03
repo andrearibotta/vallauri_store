@@ -396,3 +396,29 @@
   .mobile-hidden { display: none !important; }
   .chat-layout { border-radius: 14px; min-height: unset; }
 }
+
+.chat-list-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.chat-unread-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 11px;
+  height: 11px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.chat-header-ultimo-msg {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}

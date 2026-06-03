@@ -47,24 +47,24 @@ const onlineUsers = new Map();
 
 // ── 5. Logica Socket.io ───────────────────────────────────────────────────
 io.on("connection", (socket) => {
-  const userId = socket.user.id;
+  // FORZIAMO L'ID A NUMERO
+  const userId = Number(socket.user.id);
   onlineUsers.set(userId, socket.id);
-  console.log(`[Socket] Utente ${userId} connesso (${socket.id})`);
+  
+  // Aggiungiamo un log per vedere chi c'è davvero online
+  console.log(`[Socket] Utente ${userId} connesso. Online ora:`, Array.from(onlineUsers.keys()));
 
-  // ── Invio messaggio ──────────────────────────────────────────────────────
   socket.on("send_message", async (data) => {
     const { id_destinatario, id_prodotto, testo_messaggio } = data;
+    const id_mittente = Number(socket.user.id); // FORZIAMO A NUMERO ANCHE QUI
 
-    // IMPORTANTE: id_mittente sempre dal JWT, mai dal payload client
-    const id_mittente = socket.user.id;
+    console.log(`[Socket] Ricevuto messaggio da ${id_mittente} per ${id_destinatario}`);
 
-    // Validazione base
     if (!id_destinatario || !id_prodotto || !testo_messaggio?.trim()) {
       return socket.emit("message_error", { message: "Dati mancanti nel messaggio" });
     }
 
     try {
-      // Salva nel DB
       const result = await query(
         `INSERT INTO messaggi (id_mittente, id_destinatario, id_prodotto, testo_messaggio)
          VALUES (?, ?, ?, ?)`,
@@ -73,20 +73,21 @@ io.on("connection", (socket) => {
 
       const messaggio = {
         id_mess: result.insertId,
-        id_mittente,
+        id_mittente: id_mittente,
         id_destinatario: Number(id_destinatario),
         id_prodotto: Number(id_prodotto),
         testo_messaggio: testo_messaggio.trim(),
         timestamp: new Date(),
       };
 
-      // Recapita al destinatario se online
       const socketDest = onlineUsers.get(Number(id_destinatario));
       if (socketDest) {
+        console.log(`[Socket] Consegno a destinatario ${id_destinatario} in tempo reale!`);
         io.to(socketDest).emit("receive_message", messaggio);
+      } else {
+        console.log(`[Socket] Destinatario ${id_destinatario} offline. Leggerà al prossimo accesso.`);
       }
 
-      // Conferma al mittente
       socket.emit("message_sent", messaggio);
 
     } catch (err) {
@@ -95,7 +96,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ── Disconnessione ───────────────────────────────────────────────────────
   socket.on("disconnect", () => {
     onlineUsers.delete(userId);
     console.log(`[Socket] Utente ${userId} disconnesso`);

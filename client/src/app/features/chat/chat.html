@@ -2,11 +2,12 @@
   <div class="container py-4">
     <div class="row g-0 chat-layout">
 
+      <!-- SIDEBAR -->
       <div class="col-lg-4 col-md-5 chat-sidebar" [class.mobile-hidden]="chatAperta">
 
         <div class="chat-sidebar-header">
           <h5 class="chat-sidebar-title">Messaggi</h5>
-          <span class="chat-count">{{ conversazioni.length }}</span>
+          <span class="chat-count">{{ contattiContattati.length }}</span>
         </div>
 
         <div class="chat-search-wrap">
@@ -19,33 +20,41 @@
         </div>
 
         <div class="chat-list">
-          @for (c of contattiContattati; track c.id) {
+          @for (c of contattiContattati; track c.id_utente) {
             <div
               class="chat-list-item"
+              [class.active]="conversazioneAttiva?.id_utente === c.id_utente"
               (click)="apriChat(c)"
             >
-              <div class="chat-list-avatar" [style.background]="c.colore">
-                {{ c.iniziale }}
+              <!-- Avatar con pallino rosso se ci sono messaggi non letti -->
+              <div class="chat-list-avatar-wrap">
+                <div class="chat-list-avatar" style="background: linear-gradient(135deg,#3b82f6,#60a5fa)">
+                  {{ c.nome.charAt(0).toUpperCase() }}
+                </div>
+                @if (hasNonLetti(c)) {
+                  <span class="chat-unread-dot"></span>
+                }
               </div>
+
               <div class="flex-grow-1 min-w-0">
                 <div class="d-flex align-items-center justify-content-between">
-                  <span class="chat-list-nome">{{ c.nome }} {{ c.cognome }}</span>
-                  <span class="chat-list-ora">{{ c.ora }} 11.00</span>
+                  <span class="chat-list-nome" [class.fw-bold]="hasNonLetti(c)">{{ c.nome }} {{ c.cognome }}</span>
+                  <span class="chat-list-ora">{{ c.ora | date:'HH:mm' }}</span>
                 </div>
-                <p class="chat-list-preview">{{ c.ultimoMessaggio }} MESS PROVA</p>
+
+                <p class="chat-list-preview" [class.fw-semibold]="hasNonLetti(c)">{{ c.testo }}</p>
+
                 <span class="chat-list-prodotto">
-                  <i class="bi bi-tag me-1"></i>{{ c.nomeProdotto }} PRODOTTO PROVA
+                  <i class="bi bi-tag me-1"></i>{{ c.nomeProdotto }}
                 </span>
               </div>
-              @if (c.nonLetti > 0) {
-                <span class="chat-unread">{{ c.nonLetti }}</span>
-              }
             </div>
           }
         </div>
 
       </div>
 
+      <!-- MAIN CHAT -->
       <div class="col-lg-8 col-md-7 chat-main" [class.mobile-hidden]="!chatAperta">
 
         @if (!conversazioneAttiva) {
@@ -64,6 +73,10 @@
             </div>
             <div class="flex-grow-1">
               <span class="chat-header-nome">{{ conversazioneAttiva.venditore }}</span>
+              <!-- ✅ Ultimo messaggio sotto il nome -->
+              @if (conversazioneAttiva.testo) {
+                <p class="chat-header-ultimo-msg">{{ conversazioneAttiva.testo }}</p>
+              }
             </div>
             <div class="chat-header-prodotto">
               <span class="chp-label">Prodotto</span>
@@ -75,18 +88,20 @@
           <div class="chat-messages" #scrollContainer>
             @for (m of conversazioneAttiva.messaggi; track $index) {
 
+              <!-- ✅ FIX: rimosso il @for interno errato; il separatore ora funziona correttamente -->
               @if (m.separatore) {
                 <div class="chat-day-separator">
-                  <span>{{ m.separatore }}</span>
+                  <span>{{ m.testo }}</span>
+                </div>
+              } @else {
+                <div class="chat-msg-wrap" [class.sent]="m.mittente === 'io'">
+                  <div class="chat-bubble" [class.sent]="m.mittente === 'io'">
+                    <!-- ✅ FIX: usa m.testo invece di "ciao" hardcoded -->
+                    {{ m.testo }}
+                    <span class="chat-bubble-ora">{{ m.ora }}</span>
+                  </div>
                 </div>
               }
-
-              <div class="chat-msg-wrap" [class.sent]="m.mittente === 'io'">
-                <div class="chat-bubble" [class.sent]="m.mittente === 'io'">
-                  {{ m.testo }}
-                  <span class="chat-bubble-ora">{{ m.ora }}</span>
-                </div>
-              </div>
 
             }
           </div>
@@ -106,8 +121,40 @@
             </div>
           </div>
         }
+
       </div>
 
     </div>
   </div>
 </div>
+
+<!-- =====================================================
+     CSS DA AGGIUNGERE NEL TUO chat.css
+     =====================================================
+
+.chat-list-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.chat-unread-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 11px;
+  height: 11px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.chat-header-ultimo-msg {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+====================================================== -->
