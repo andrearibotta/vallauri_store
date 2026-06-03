@@ -125,13 +125,15 @@
               <i class="bi" [ngClass]="c.icon"></i>
               <button class="correlato-fav"><i class="bi bi-heart"></i></button>
             </div>
-            <div class="correlato-body">
-              <p class="correlato-title">{{ c.nome }}</p>
-              <div class="d-flex align-items-center justify-content-between">
-                <span class="correlato-price">€ {{ c.prezzo }}</span>
-                <span class="correlato-seller"><i class="bi bi-person-circle me-1"></i>{{ c.venditore }}</span>
+            @for(prodotto of lstProdottiCasuali; track $index){
+              <div class="correlato-body">
+                <p class="correlato-title">{{ prodotto.nome }}</p>
+                <div class="d-flex align-items-center justify-content-between">
+                  <span class="correlato-price">€ {{ prodotto.prezzo }}</span>
+                  <span class="correlato-seller"><i class="bi bi-person-circle me-1"></i>{{ prodotto.id_venditore }}</span>
+                </div>
               </div>
-            </div>
+            }
           </div>
         </div>
       </div>

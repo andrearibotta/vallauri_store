@@ -73,11 +73,11 @@
 
             <div class="mb-3">
               <label class="carica-label">Categoria</label>
-              <select formControlName="categoria" class="form-select carica-input">
+              <select formControlName="categoria" class="form-select carica-input" (change) = select()>
                 <option value="" disabled>Scegli una categoria...</option>
-                <option value="Libri">Libri</option>
-                <option value="Appunti">Appunti</option>
-                <option value="Elettronica">Elettronica</option>
+                @for(categoria of lstCategorie; track $index){
+                  <option [value]='categoria.id_categoria'>{{categoria.nomeCategoria}}</option>
+                }
               </select>
             </div>
 
@@ -135,9 +135,8 @@
           <button type="button" routerLink="/profilo" class="btn btn-outline-secondary">Annulla</button>
           <button type="submit"
                   class="btn btn-pubblica"
-                  [disabled]="annuncioForm.invalid"
-                  (click)="onSubmit()">
-            <i class="bi bi-send me-2"></i>Pubblica ora
+                  (click)="InserisciProdotto()">
+            <i class="bi bi-send me-2" (click) = "InserisciProdotto()"></i>Pubblica ora
           </button>
         </div>
 

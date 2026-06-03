@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
+import { Httpcalls } from '../../services/httpcalls';
 
 @Component({
   selector: 'prodotto',
@@ -12,6 +13,7 @@ export class Prodotto implements OnInit {
   datiUtente: any = {}
   utenteLoggato: any = {}
   loggato: boolean = false;
+  lstProdottiCasuali: any;
 
   // Classe gradiente e icona calcolate dalla categoria
   gradientClass = 'grad-rose';
@@ -25,14 +27,24 @@ export class Prodotto implements OnInit {
     { nome: 'Cappellino estivo',   prezzo: '3,00',  venditore: 'Paolo', icon: 'bi-bag',        gradientClass: 'grad-violet' },
   ];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router,private http:Httpcalls, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.datiUtente = history.state.utente;
     this.loggato = history.state.loggato;
     console.log(this.datiUtente);
-    console.log("login prodotto: ", history.state)
-
+    console.log("login prodotto: ", history.state);
+    console.log("ciaooo")
+    this.http.Get('/public/get4ProdottiCasuali').subscribe({
+      next: (response) =>{
+        console.log(response)
+        this.lstProdottiCasuali = response
+        this.cdr.detectChanges();
+      },
+      error: (err) =>{
+        console.log(err)
+      }
+    })
     //richiedere 4 prodotti casuali al server da mettere sotto per visualizzare
   }
 

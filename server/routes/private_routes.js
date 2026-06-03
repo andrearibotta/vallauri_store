@@ -194,6 +194,15 @@ router.post('/modificaProfilo', async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-});
+})
+
+router.get('/getAllCategorie',async(req,res) =>{
+    console.log("Ciaooo")
+    const categorie = await db.query(
+        'SELECT * FROM categorie'
+    )
+
+    return res.status(200).json({ok:true,categorie:categorie});
+})
 
 module.exports = router;
