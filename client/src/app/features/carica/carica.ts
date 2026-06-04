@@ -12,67 +12,87 @@ import { Httpcalls } from '../../services/httpcalls';
 })
 export class Carica implements OnInit {
   annuncioForm!: FormGroup;
-  lstCategorie:any;
-  datiUtente:any = {}
+  lstCategorie: any;
+  datiUtente: any = {};
 
+  // Mappiamo 'value' con gli ID reali presenti sul Database (Tabella condizioni)
   condizioni = [
-    { value: 'nuovo',   label: 'Nuovo',    desc: 'Mai usato, con etichette',   colorClass: 'cond-nuovo'   },
-    { value: 'ottimo',  label: 'Ottimo',   desc: 'Usato pochissimo',           colorClass: 'cond-ottimo'  },
-    { value: 'buono',   label: 'Buono',    desc: 'Qualche segno di utilizzo',  colorClass: 'cond-buono'   },
-    { value: 'discreto',label: 'Discreto', desc: 'Visibilmente usato',         colorClass: 'cond-discreto'},
+    { value: 1, label: 'Nuovo',    desc: 'Mai usato, con etichette',   colorClass: 'cond-nuovo'   },
+    { value: 2, label: 'Ottimo',   desc: 'Usato pochissimo',           colorClass: 'cond-ottimo'  },
+    { value: 3, label: 'Buono',    desc: 'Qualche segno di utilizzo',  colorClass: 'cond-buono'   },
+    { value: 4, label: 'Discreto', desc: 'Visibilmente usato',         colorClass: 'cond-discreto'},
   ];
 
-  constructor(private fb: FormBuilder, private router: Router,private http:Httpcalls,private cdr: ChangeDetectorRef) {}
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private http: Httpcalls,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    this.datiUtente = history.state.utente
+    this.datiUtente = history.state.utente || {};
+
     this.annuncioForm = this.fb.group({
       immagini: this.fb.array([null, null, null, null, null]),
       categoria: ['', Validators.required],
       nome: ['', [Validators.required, Validators.maxLength(80)]],
-      condizione: ['', Validators.required],
+      condizione: ['', Validators.required], // Conterrà l'ID numerico (1, 2, 3, 4)
       descrizione: ['', [Validators.required, Validators.maxLength(600)]],
       prezzo: [null, [Validators.required, Validators.min(0)]],
       accettoTrattative: [false],
       disponibileScambio: [false]
     });
+
     this.http.Get('/private/getallCategorie').subscribe({
-      next: (response) =>{
-        console.log(response)
+      next: (response) => {
         this.lstCategorie = response.categorie;
-        console.log(this.lstCategorie)
-        this.cdr.detectChanges()
+        this.cdr.detectChanges();
       },
-      error: (err) =>{
-        console.log(err)
+      error: (err) => {
+        console.error("Errore nel recupero delle categorie:", err);
       }
-    })
-    console.log("HO passatoo i dati figa ",this.datiUtente.id)
-    console.log(new Date().toLocaleString('sv-SE'))
+    });
   }
 
-  select(){
-    const idCategoriaSelezionata = this.annuncioForm.get('categoria')?.value
-    console.log(idCategoriaSelezionata)
+  select() {
+    const idCategoriaSelezionata = this.annuncioForm.get('categoria')?.value;
+    console.log("Categoria selezionata ID:", idCategoriaSelezionata);
   }
 
-  InserisciProdotto(){
+  InserisciProdotto() {
+    // Se il form non è valido (es. nessuna condizione selezionata), marchiamo i campi per mostrare l'errore
+    if (this.annuncioForm.invalid) {
+      this.annuncioForm.markAllAsTouched();
+      return;
+    }
+
     const idCategoriaSelezionata = this.annuncioForm.get('categoria')?.value;
     const nome = this.annuncioForm.get('nome')?.value;
     const idVenditore = this.datiUtente.id;
+    const idCondizione = this.annuncioForm.get('condizione')?.value; // Recuperiamo l'ID della condizione
     const descrizione = this.annuncioForm.get('descrizione')?.value;
     const prezzo = this.annuncioForm.get('prezzo')?.value;
-    const data = new Date().toLocaleString('sv-SE');
+    const data = new Date().toLocaleString('sv-SE'); // Formato: YYYY-MM-DD HH:MM:SS
 
-    this.http.Post('/private/caricaProdotto',{id_venditore:idVenditore,id_categoria:idCategoriaSelezionata,nome:nome,descrizione:descrizione,prezzo:prezzo,data_pubblicazione:data}).subscribe({
-      next: (response) =>{
-        console.log(response);
-        this.router.navigate(['/home'])
+    // Aggiunto id_condizione nel corpo della richiesta HTTP
+    this.http.Post('/private/caricaProdotto', {
+      id_venditore: idVenditore,
+      id_categoria: idCategoriaSelezionata,
+      id_condizione: idCondizione, // Passaggio chiave per il database
+      nome: nome,
+      descrizione: descrizione,
+      prezzo: prezzo,
+      data_pubblicazione: data
+    }).subscribe({
+      next: (response) => {
+        console.log("Prodotto caricato con successo:", response);
+        this.router.navigate(['/home']);
       },
-      error: (err) =>{
-        console.log(err)
+      error: (err) => {
+        console.error("Errore durante il caricamento del prodotto:", err);
       }
-    })
+    });
   }
 
   get immaginiFormArray(): FormArray {
@@ -110,15 +130,5 @@ export class Carica implements OnInit {
 
   getCharCount(controlName: string): number {
     return this.annuncioForm.get(controlName)?.value?.length || 0;
-  }
-
-  onSubmit(): void {
-    if (this.annuncioForm.valid) {
-      console.log('Pubblicazione in corso...', this.annuncioForm.value);
-      // Logica di invio al server qui
-      this.router.navigate(['/profilo']);
-    } else {
-      this.annuncioForm.markAllAsTouched();
-    }
   }
 }

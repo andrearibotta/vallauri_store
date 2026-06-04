@@ -12,7 +12,7 @@ import { io } from 'socket.io-client';
   templateUrl: './chat.html',
   styleUrl: './chat.css'
 })
-export class Chat implements OnInit, AfterViewChecked {
+export class Chat implements OnInit {
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
 
   private socket: any;
@@ -40,17 +40,15 @@ export class Chat implements OnInit, AfterViewChecked {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ Socket connesso con ID:', this.socket.id);
+      console.log('Socket connesso con ID:', this.socket.id);
     });
 
-    // 3. Ascolto messaggi in arrivo (avvolto in NgZone)
     this.socket.on('receive_message', (messaggio: any) => {
       this.ngZone.run(() => {
         this.riceviMessaggioInTempoReale(messaggio, 'altro');
       });
     });
 
-    // 4. Ascolto conferma dei messaggi inviati (avvolto in NgZone)
     this.socket.on('message_sent', (messaggio: any) => {
       this.ngZone.run(() => {
         this.riceviMessaggioInTempoReale(messaggio, 'io');
@@ -58,12 +56,7 @@ export class Chat implements OnInit, AfterViewChecked {
     });
   }
 
-  ngAfterViewChecked() {
-    // ✅ NON scrolliamo più qui: evita scroll continuo ad ogni change detection
-  }
-
   scrollToBottom(): void {
-    // ✅ Usiamo setTimeout per aspettare che il DOM sia aggiornato prima di scrollare
     setTimeout(() => {
       try {
         if (this.scrollContainer) {
@@ -76,11 +69,56 @@ export class Chat implements OnInit, AfterViewChecked {
   caricaContatti() {
     this.http.Post("/chat/getAllContatti", {}).subscribe({
       next: (data: any) => {
-        this.contattiContattati = data.result;
+        this.contattiContattati = data.result || [];
+
+        // Controlla se l'utente proviene dalla pagina Prodotto ("Contatta il venditore")
+        const datiNavigazione = history.state.dati;
+        if (datiNavigazione && datiNavigazione.id_venditore && datiNavigazione.id_prodotto) {
+          this.gestisciNuovoContattoDaProdotto(datiNavigazione);
+        }
+
         this.cdr.detectChanges();
       },
-      error: err => console.error("❌ Errore caricamento contatti:", err)
+      error: err => console.error("Errore caricamento contatti:", err)
     });
+  }
+
+  /**
+   * Verifica se esiste già una chat attiva per questo prodotto con questo venditore.
+   * Se non esiste, crea un contatto fittizio a runtime in cima alla lista.
+   */
+  gestisciNuovoContattoDaProdotto(dati: any) {
+    const idVenditore = Number(dati.id_venditore);
+    const idProdotto = Number(dati.id_prodotto);
+
+    // Cerca se esiste già nei contatti caricati dal DB
+    const chatEsistente = this.contattiContattati.find((c: any) =>
+      Number(c.id_utente) === idVenditore && Number(c.id_prodotto) === idProdotto
+    );
+
+    if (chatEsistente) {
+      // Se esiste già, apri semplicemente la chat esistente
+      this.apriChat(chatEsistente);
+    } else {
+      // Se non esiste, andiamo a comporre un oggetto "contatto virtuale" temporaneo
+      const contattoVirtuale = {
+        id_utente: idVenditore,
+        id_prodotto: idProdotto,
+        nome: dati.venditoreNome || 'Venditore',
+        cognome: dati.venditoreCognome || '',
+        nomeProdotto: dati.nomeProdotto || 'Annuncio',
+        prezzo: dati.prezzo || '0.00',
+        testo: 'Inizia la conversazione...',
+        ora: new Date().toISOString(),
+        isVirtuale: true // Flag per riconoscerlo a runtime
+      };
+
+      // Inserimento in cima alla lista laterale sinistra
+      this.contattiContattati.unshift(contattoVirtuale);
+
+      // Apertura automatica immediata della conversazione
+      this.apriChat(contattoVirtuale);
+    }
   }
 
   apriChat(contatto: any): void {
@@ -88,15 +126,23 @@ export class Chat implements OnInit, AfterViewChecked {
     this.chatAperta = true;
     this.conversazioneAttiva.messaggi = [];
 
-    // ✅ Segna la conversazione come letta quando viene aperta
+    // Generiamo iniziali e proprietà grafiche di fallback utili per il contatto virtuale o dati incompleti
+    this.conversazioneAttiva.iniziale = contatto.nome ? contatto.nome.charAt(0).toUpperCase() : 'V';
+    this.conversazioneAttiva.colore = contatto.colore || 'linear-gradient(135deg, #3b82f6, #60a5fa)';
+    this.conversazioneAttiva.venditore = `${contatto.nome} ${contatto.cognome}`.trim();
+
     const chiave = `${contatto.id_utente}_${contatto.id_prodotto}`;
     this.nonLetti.delete(chiave);
 
-    // ✅ FIX: usa l'endpoint GET corretto per caricare la cronologia messaggi
-    // Il backend si aspetta: GET /api/chat/:id_destinatario/:id_prodotto
+    // Se è un contatto virtuale temporaneo senza storicità, evitiamo la chiamata GET a vuoto
+    if (contatto.isVirtuale) {
+      this.cdr.detectChanges();
+      this.scrollToBottom();
+      return;
+    }
+
     this.http.Get(`/chat/${contatto.id_utente}/${contatto.id_prodotto}`).subscribe({
       next: (data: any) => {
-        // Il backend restituisce direttamente un array (res.json(messaggi ?? []))
         const messaggi = Array.isArray(data) ? data : (data.result ?? []);
 
         this.conversazioneAttiva.messaggi = messaggi.map((m: any) => {
@@ -111,10 +157,9 @@ export class Chat implements OnInit, AfterViewChecked {
         });
 
         this.cdr.detectChanges();
-        // ✅ Scrolla in fondo dopo che Angular ha renderizzato i messaggi
         this.scrollToBottom();
       },
-      error: err => console.error("❌ Errore caricamento messaggi:", err)
+      error: err => console.error("Errore caricamento messaggi:", err)
     });
   }
 
@@ -133,10 +178,9 @@ export class Chat implements OnInit, AfterViewChecked {
       testo_messaggio: testo
     };
 
-    // Svuoto subito l'input per evitare l'errore NG0100 di Angular
     this.nuovoMessaggio = '';
 
-    console.log("🚀 INVIANDO AL SERVER QUESTO PAYLOAD:", payload);
+    console.log("INVIANDO AL SERVER QUESTO PAYLOAD:", payload);
     this.socket.emit("send_message", payload);
   }
 
@@ -145,9 +189,8 @@ export class Chat implements OnInit, AfterViewChecked {
   }
 
   riceviMessaggioInTempoReale(msg: any, provenienza: 'io' | 'altro') {
-    console.log(`🔥 SOCKET HA RICEVUTO UN MESSAGGIO (provenienza: ${provenienza}):`, msg);
+    console.log(`SOCKET HA RICEVUTO UN MESSAGGIO (provenienza: ${provenienza}):`, msg);
 
-    // 1. Aggiorno l'anteprima laterale con l'ultimo messaggio
     const contatto = this.contattiContattati.find((c: any) =>
       c.id_prodotto == msg.id_prodotto &&
       (c.id_utente == msg.id_mittente || c.id_utente == msg.id_destinatario)
@@ -157,21 +200,12 @@ export class Chat implements OnInit, AfterViewChecked {
       contatto.testo = msg.testo_messaggio;
       contatto.ora = msg.timestamp;
 
-      // ✅ Segna come non letto solo se il messaggio è dell'altro
-      // e la conversazione NON è quella attualmente aperta
-      const chiave = `${contatto.id_utente}_${contatto.id_prodotto}`;
-      const chatAttiva = this.conversazioneAttiva;
-      const isConversazioneAperta =
-        chatAttiva &&
-        chatAttiva.id_utente == contatto.id_utente &&
-        chatAttiva.id_prodotto == contatto.id_prodotto;
-
-      if (provenienza === 'altro' && !isConversazioneAperta) {
-        this.nonLetti.add(chiave);
+      // Se era un contatto virtuale e l'invio è andato a buon fine, rimuoviamo il flag temporaneo
+      if (contatto.isVirtuale) {
+        delete contatto.isVirtuale;
       }
     }
 
-    // 2. Aggiorno la chat aperta
     if (this.conversazioneAttiva && this.conversazioneAttiva.id_prodotto == msg.id_prodotto) {
       const oraFormattata = new Date(msg.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
 

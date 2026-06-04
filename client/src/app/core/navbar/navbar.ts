@@ -58,11 +58,10 @@ export class Navbar implements AfterViewInit, OnInit {
       const q = input.value.trim();
       if (q) {
         this.router.navigate(['/ricerca'], {
-          state: { q: { q }, loggato: this.loggato }
+          queryParams: { q: q }
         });
       }
     };
-
     if (btnSrch) btnSrch.addEventListener('click', doSearch);
     if (input) {
       input.addEventListener('keydown', (e) => {

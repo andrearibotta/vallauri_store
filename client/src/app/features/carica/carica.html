@@ -73,7 +73,7 @@
 
             <div class="mb-3">
               <label class="carica-label">Categoria</label>
-              <select formControlName="categoria" class="form-select carica-input" (change) = select()>
+              <select formControlName="categoria" class="form-select carica-input" (change)="select()">
                 <option value="" disabled>Scegli una categoria...</option>
                 @for(categoria of lstCategorie; track $index){
                   <option [value]='categoria.id_categoria'>{{categoria.nomeCategoria}}</option>
@@ -136,7 +136,7 @@
           <button type="submit"
                   class="btn btn-pubblica"
                   (click)="InserisciProdotto()">
-            <i class="bi bi-send me-2" (click) = "InserisciProdotto()"></i>Pubblica ora
+            <i class="bi bi-send me-2"></i>Pubblica ora
           </button>
         </div>
 

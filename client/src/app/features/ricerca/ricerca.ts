@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // 1. Importa ChangeDetectorRef
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { Httpcalls } from '../../services/httpcalls';
+import { Controllologin } from '../../services/controllologin'; // Servizio per il login
 
 export interface SearchResult {
   id: number;
@@ -23,19 +24,12 @@ export interface SearchResult {
   styleUrl: './ricerca.css',
 })
 export class Ricerca implements OnInit {
-  risultatiRicerca: any = []; // Inizializzalo come array vuoto invece di oggetto se cicli con @for
-
-  // 2. Inietta cdr nel costruttore
-  constructor(
-    private http: Httpcalls,
-    private route: ActivatedRoute,
-    private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
-
+  risultatiRicerca: any = [];
+  lstCategorie: any[] = []; // Array per le categorie dinamiche del DB
   searchQuery = '';
   isLoading   = false;
 
+  // Ripristinato l'array originale del tuo file
   categories = [
     { label: 'Libri',          count: 34 },
     { label: 'Appunti',        count: 18 },
@@ -45,40 +39,32 @@ export class Ricerca implements OnInit {
     { label: 'Sport',          count: 5  },
   ];
 
-  prodotti: any = [
-    // ... i tuoi dati fittizi rimangono identici
-  ];
+  prodotti: any = [];
 
-  loggato: boolean = false;
+  constructor(
+    private http: Httpcalls,
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private loginService: Controllologin
+  ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      console.log("History State attuale:", history.state);
+    // Carichiamo le categorie dal database all'avvio
+    this.caricaCategorie();
 
-      // SICUREZZA: Protezione anti-crash se l'utente rinfresca la pagina (F5)
-      if (history.state && history.state.q) {
-        this.searchQuery = history.state.q.q;
-        this.loggato = history.state.loggato || false;
-      } else {
-        // Fallback se ricarichi la pagina o entri direttamente dall'URL
-        this.searchQuery = '';
-        this.loggato = false;
-      }
+    // Gestione della query di ricerca nell'URL
+    this.route.queryParams.subscribe(params => {
+      this.searchQuery = params['q'] || '';
 
       if (this.searchQuery) {
-        console.log("Avvio ricerca IA per:", this.searchQuery);
         this.isLoading = true;
-
-        // Forza un controllo iniziale per mostrare lo spinner di caricamento
         this.cdr.detectChanges();
 
         this.http.Post('/ai/chat', { message: this.searchQuery }).subscribe({
           next: data => {
             this.risultatiRicerca = data.products;
-            console.log("RisultatiRicerca ricevuti dal server: ", this.risultatiRicerca);
             this.isLoading = false;
-
-            // 3. FONDAMENTALE: Forza Angular a renderizzare i dati nelle card ora che sono arrivati
             this.cdr.detectChanges();
           },
           error: err => {
@@ -87,17 +73,36 @@ export class Ricerca implements OnInit {
             this.cdr.detectChanges();
           }
         });
+      } else {
+        this.risultatiRicerca = [];
+        this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
+  caricaCategorie() {
+    this.http.Get('/private/getallCategorie').subscribe({
+      next: (response: any) => {
+        this.lstCategorie = response.categorie || [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Errore categorie in ricerca:", err)
+    });
+  }
+
   clickProdotto(item: any) {
-    console.log("Navigo verso il prodotto ID:", item.id_prodotto || item.id);
+    const idSelezionato = item.id_prodotto || item.id;
+    const statoLogin = this.loginService.currentData();
+
+    const isLoggato = statoLogin ? true : false;
+    const infoUtente = statoLogin?.utenteLoggato || statoLogin || {};
 
     this.router.navigate(['/prodotto'], {
       state: {
-        id_prodotto: item.id_prodotto || item.id, // Passiamo l'ID al posto di tutto l'oggetto pesante
-        loggato: this.loggato
+        id_prodotto: idSelezionato,
+        loggato: isLoggato,
+        utenteLoggato: infoUtente
       }
     });
   }

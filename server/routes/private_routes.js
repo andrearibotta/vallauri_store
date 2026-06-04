@@ -117,17 +117,26 @@ router.get('/getProfilo/:id', async (req, res) => {
     }
 });
 
-router.post('/caricaProdotto',async(req,res,next) =>{
-    const {id_venditore,id_categoria,nome,descrizione,prezzo,data_pubblicazione} = req.body;
-    if(!id_venditore || !id_categoria || !nome || !descrizione || !prezzo || !data_pubblicazione){
-        return res.status(400).json({err: "Dati mancanti"})
+router.post('/caricaProdotto', async (req, res, next) => {
+    const { id_venditore, id_categoria, id_condizione, nome, descrizione, prezzo, data_pubblicazione } = req.body;
+    
+    if (!id_venditore || !id_categoria || !id_condizione || !nome || !descrizione || !prezzo || !data_pubblicazione) {
+        return res.status(400).json({ err: "Dati mancanti" });
     }
-    const result = await db.query(
-        `INSERT INTO prodotto (id_venditore, id_categoria, nome, descrizione, prezzo, data_pubblicazione) VALUES (?,?,?,?,?,?)`,
-        [id_venditore,id_categoria,nome,descrizione,prezzo,data_pubblicazione]
-    )
-    return res.status(200).json({ok:true,result:result});
-})
+
+    try {
+        const result = await db.query(
+            `INSERT INTO prodotto (id_venditore, id_categoria, id_condizione, nome, descrizione, prezzo, data_pubblicazione) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [id_venditore, id_categoria, id_condizione, nome, descrizione, prezzo, data_pubblicazione]
+        );
+
+        return res.status(200).json({ ok: true, result: result });
+    } catch (error) {
+        console.error("Errore durante l'inserimento del prodotto:", error);
+        return res.status(500).json({ err: "Errore interno del server" });
+    }
+});
 
 router.post('/modificaProfilo', async (req, res, next) => {
     try {
