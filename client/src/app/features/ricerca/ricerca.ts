@@ -92,11 +92,13 @@ export class Ricerca implements OnInit {
   }
 
   clickProdotto(item: any) {
-    console.log("item cliccato: ", item);
-    console.log("loggato come passa? ", this.loggato);
+    console.log("Navigo verso il prodotto ID:", item.id_prodotto || item.id);
 
     this.router.navigate(['/prodotto'], {
-      state: { utente: item, loggato: this.loggato }
+      state: {
+        id_prodotto: item.id_prodotto || item.id, // Passiamo l'ID al posto di tutto l'oggetto pesante
+        loggato: this.loggato
+      }
     });
   }
 }

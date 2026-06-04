@@ -23,7 +23,7 @@ export class Home implements OnInit{
         console.log(data.user.state)
         this.cl.updateData(data.user);
         if(data.user.state == "register"){
-          this.http.Post('/email/conntact',{name:data.user.nome,email:data.user.email,subject:"Benvenuto in Vallauristore",htmlMessage:`<h2>Benvenuto in Vallauristore</h2> Grazie per esserti unito alla comunity di vallauristore ${data.user.nome}`}).subscribe({
+          this.http.Post('/email/contact',{name:data.user.nome,email:data.user.email,subject:"Benvenuto in Vallauristore",htmlMessage:`<h2>Benvenuto in Vallauristore</h2> Grazie per esserti unito alla comunity di vallauristore ${data.user.nome}`}).subscribe({
           next: (response) =>{
             console.log(response)
           },

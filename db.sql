@@ -321,3 +321,7 @@ INSERT INTO preferiti (id_utente, id_prodotto) VALUES
 (5, 21), (5, 38),             -- Alessandro osserva la giacca jeans custom e le Vans
 (10, 7), (10, 93), (10, 100), -- Sara segue gli appunti di C++ e le lezioni di informatica e diritto
 (19, 12), (19, 13), (19, 81); -- Luca segue jeans neri, giacca di pelle e l'iPhone
+
+ALTER TABLE utente
+ADD COLUMN reset_code VARCHAR(255) DEFAULT NULL,
+ADD COLUMN reset_code_expiry DATETIME DEFAULT NULL;

@@ -118,24 +118,38 @@
     <div class="mt-5 pt-3">
       <h4 class="section-title mb-1">Potrebbero interessarti</h4>
       <p class="section-sub mb-4">Altri annunci nella stessa categoria</p>
+
       <div class="row g-3">
-        <div class="col-6 col-md-3" *ngFor="let c of correlati">
-          <div class="correlato-card">
-            <div class="correlato-img" [ngClass]="c.gradientClass">
-              <i class="bi" [ngClass]="c.icon"></i>
-              <button class="correlato-fav"><i class="bi bi-heart"></i></button>
-            </div>
-            @for(prodotto of lstProdottiCasuali; track $index){
+        @for (prodotto of lstProdottiCasuali; track prodotto.id_prodotto) {
+          <div class="col-6 col-md-3">
+            <div class="correlato-card" (click)="clickProdotto(prodotto)" style="cursor: pointer;">
+
+              <div class="correlato-img" [ngClass]="getGradient(prodotto.id_categoria)">
+                <i class="bi" [ngClass]="getIcon(prodotto.id_categoria)"></i>
+                <button class="correlato-fav" (click)="$event.stopPropagation()">
+                  <i class="bi bi-heart"></i>
+                </button>
+              </div>
+
               <div class="correlato-body">
-                <p class="correlato-title">{{ prodotto.nome }}</p>
-                <div class="d-flex align-items-center justify-content-between">
+                <p class="correlato-title text-truncate" [title]="prodotto.nome">
+                  {{ prodotto.nome }}
+                </p>
+                <div class="d-flex align-items-center justify-content-between mt-2">
                   <span class="correlato-price">€ {{ prodotto.prezzo }}</span>
-                  <span class="correlato-seller"><i class="bi bi-person-circle me-1"></i>{{ prodotto.id_venditore }}</span>
+                  <span class="correlato-seller text-truncate">
+                <i class="bi bi-person-circle me-1"></i>ID: {{ prodotto.id_venditore }}
+              </span>
                 </div>
               </div>
-            }
+
+            </div>
           </div>
-        </div>
+        } @empty {
+          <div class="col-12 text-center text-muted py-3">
+            Nessun prodotto consigliato disponibile.
+          </div>
+        }
       </div>
     </div>
 

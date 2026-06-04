@@ -44,4 +44,47 @@ router.get('/get4ProdottiCasuali', async(req,res) =>{
     }
 })
 
+router.get('/getProdottoCompleto/:id', async (req, res) => {
+    const idProdotto = req.params.id;
+
+    // Controllo di sicurezza sull'ID impaginato
+    if (!idProdotto || isNaN(idProdotto)) {
+        return res.status(400).json({ ok: false, error: "ID prodotto non valido o mancante" });
+    }
+
+    try {
+        const querySQL = `
+            SELECT 
+                p.id_prodotto,
+                p.id_venditore,
+                p.id_categoria,
+                p.id_condizione,
+                p.nome AS nome,  -- Nome del prodotto
+                p.descrizione,
+                p.prezzo,
+                p.data_pubblicazione,
+                u.nome AS venditoreNome,
+                u.cognome AS venditoreCognome,
+                u.email AS venditoreEmail
+            FROM prodotto p
+            INNER JOIN utente u ON p.id_venditore = u.id_utente
+            WHERE p.id_prodotto = ?
+        `;
+
+        const rows = await db.query(querySQL, [idProdotto]);
+
+        // Se il prodotto non esiste nel DB
+        if (rows.length === 0) {
+            return res.status(404).json({ ok: false, error: "Prodotto non trovato" });
+        }
+
+        // Ritorniamo il primo elemento dell'array (il prodotto singolo)
+        return res.json(rows[0]);
+
+    } catch (error) {
+        console.error("Errore nella query getProdottoCompleto:", error);
+        return res.status(500).json({ ok: false, error: "Errore interno del server" });
+    }
+});
+
 module.exports = router;

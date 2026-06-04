@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.SMTP_PASS
     },
     tls: {
-        rejectUnauthorized: false  // ✅ ignora errori certificato
+        rejectUnauthorized: false  
     }
 });
 
@@ -23,10 +23,10 @@ const sendEmail = async(to, subject, html, text) => {
             text
         }
         const info = await transporter.sendMail(mailOption);
-        return { success: true };          // ✅ successo nel try
+        return { success: true };          
     } catch (err) {
         console.error("Errore invio mail", err);
-        return { success: false, error: err.message };  // ✅ errore nel catch
+        return { success: false, error: err.message };  
     }
 }
 
