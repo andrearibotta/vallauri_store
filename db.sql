@@ -58,7 +58,7 @@ CREATE TABLE immagini_prodotto (
     id_prodotto INT,
     url_img VARCHAR(255) NOT NULL,
     PRIMARY KEY (id_prodotto, url_img),
-    FOREIGN KEY (id_prodotto) REFERENCES producto(id_prodotto) ON DELETE CASCADE
+    FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto) ON DELETE CASCADE
 );
 
 CREATE TABLE tag_prodotto (
