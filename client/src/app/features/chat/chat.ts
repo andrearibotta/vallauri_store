@@ -35,7 +35,7 @@ export class Chat implements OnInit {
     this.caricaContatti();
 
     // 2. Connessione Socket
-    this.socket = io('http://localhost:3000', {
+    this.socket = io('https://vallauri-store.onrender.com', {
       withCredentials: true
     });
 
