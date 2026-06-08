@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root',
 })
 export class Httpcalls {
-  private API = 'https://vallauri-store.onrender.com/api';
+  private API = 'https://api.vallauristore.it/api';
 
   constructor(private httpClient:HttpClient){}
 
