@@ -207,11 +207,6 @@ export class Chat implements OnInit {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       document.body.scrollTop = 0; // Fallback per vecchi browser
     }, 50);
-    };
-
-    this.nuovoMessaggio = '';
-    console.log("INVIANDO AL SERVER QUESTO PAYLOAD:", payload);
-    this.socket.emit("send_message", payload);
   }
 
   hasNonLetti(contatto: any): boolean {
