@@ -1,14 +1,14 @@
 <nav class="navbar navbar-expand-lg sticky-top" id="mainNav">
   <div class="container">
 
-    <a class="navbar-brand d-flex align-items-center gap-2" routerLink="/">
+    <a class="navbar-brand d-flex align-items-center gap-2" routerLink="/" (click)="closeNav(navToggler)">
       <div class="brand-icon">
-        <i class="bi bi-bag-heart-fill"></i>
+        <img src="favicon.ico" alt="">
       </div>
       <img src="immagini/logo2.png" class="brand-name img-tagliata">
     </a>
 
-    <button class="navbar-toggler border-0" type="button"
+    <button #navToggler class="navbar-toggler border-0" type="button"
             data-bs-toggle="collapse" data-bs-target="#navContent">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -25,8 +25,9 @@
             id="navSearchInput"
             class="form-control search-input"
             placeholder="Cerca libri, materiali, abbigliamento…"
+            (keyup.enter)="closeNav(navToggler)"
           >
-          <button class="btn search-submit-btn" id="navSearchBtn" type="button">
+          <button class="btn search-submit-btn" id="navSearchBtn" type="button" (click)="closeNav(navToggler)">
             <i class="bi bi-arrow-right"></i>
           </button>
         </div>
@@ -34,44 +35,45 @@
 
       <ul class="navbar-nav ms-auto align-items-center gap-2">
         <li class="nav-item">
-          <a class="nav-link nav-icon-link" routerLink="/" title="Home">
+          <a class="nav-link nav-icon-link" routerLink="/" title="Home" (click)="closeNav(navToggler)">
             <i class="bi bi-house"></i>
             <span class="nav-label">Home</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link nav-icon-link" routerLink="/preferiti" title="Preferiti">
+          <a class="nav-link nav-icon-link" routerLink="/preferiti" title="Preferiti" (click)="closeNav(navToggler)">
             <i class="bi bi-heart"></i>
             <span class="nav-label">Preferiti</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link nav-icon-link" title="Chat" (click)="apriChat()">
-            <i class="bi bi-house"></i>
+          <a class="nav-link nav-icon-link" title="Chat" (click)="apriChat(); closeNav(navToggler)">
+            <i class="bi bi-chat-dots"></i>
             <span class="nav-label">Chat</span>
           </a>
         </li>
 
-
         @if(loggato) {
-          <a class="btn btn-accedi ms-1" style="background-color: #3b82f6" routerLink="/carica" [state]="{ utente: utenteLoggato, provenienza: 'navbar' }">
-            <i class="bi bi-person-circle me-1">vendi</i>
+          <a class="btn btn-accedi ms-1" style="background-color: #3b82f6" routerLink="/carica" [state]="{ utente: utenteLoggato, provenienza: 'navbar' }" (click)="closeNav(navToggler)">
+            <i class="bi bi-tag me-2"> vendi</i>
           </a>
           <li class="nav-item">
-            <button class="theme-toggle" id="btnLogout" title="Cambia tema" (click)="logout()" >
+            <button class="theme-toggle" id="btnLogout" title="Cambia tema" (click)="logout(); closeNav(navToggler)">
               <img src="immagini/icona_logout.png" alt="Icona" class="bi bi-moon-stars-fill" id="themeIcon" width="26px" height="26px">
             </button>
           </li>
         }
         <li class="nav-item">
           @if(!loggato) {
-            <a class="btn btn-accedi ms-1" routerLink="/login">
+            <a class="btn btn-accedi ms-1" routerLink="/login" (click)="closeNav(navToggler)">
               <i class="bi bi-person-circle me-1"></i> Accedi
             </a>
           }
           @else {
-            <a class="btn btn-accedi ms-1" (click)="visualizzaProfilo()" style="height: 45px; width: 45px">
-              <i class="bi bi-person-circle me-1"></i>
+            <a class="btn btn-accedi ms-1 d-flex align-items-center justify-content-center p-0" 
+               (click)="visualizzaProfilo(); closeNav(navToggler)" 
+               style="height: 45px; width: 45px; border-radius: 50%;">
+              <i class="bi bi-person" style="font-size: 1.35rem;"></i>
             </a>
           }
         </li>

@@ -1,9 +1,8 @@
 <div class="chat-page">
-  <div class="container py-4">
-    <div class="row g-0 chat-layout">
+  <div class="container py-3 py-md-4">
+    <div class="row g-0 chat-layout d-flex align-items-stretch">
 
       <div class="col-lg-4 col-md-5 chat-sidebar" [class.mobile-hidden]="chatAperta">
-
         <div class="chat-sidebar-header">
           <h5 class="chat-sidebar-title">Messaggi</h5>
           <span class="chat-count">{{ contattiContattati.length }}</span>
@@ -39,9 +38,7 @@
                   <span class="chat-list-nome" [class.fw-bold]="hasNonLetti(c)">{{ c.nome }} {{ c.cognome }}</span>
                   <span class="chat-list-ora">{{ c.ora | date:'HH:mm' }}</span>
                 </div>
-
                 <p class="chat-list-preview" [class.fw-semibold]="hasNonLetti(c)">{{ c.testo }}</p>
-
                 <span class="chat-list-prodotto">
                   <i class="bi bi-tag me-1"></i>{{ c.nomeProdotto }}
                 </span>
@@ -49,11 +46,9 @@
             </div>
           }
         </div>
-
       </div>
 
       <div class="col-lg-8 col-md-7 chat-main" [class.mobile-hidden]="!chatAperta">
-
         @if (!conversazioneAttiva) {
           <div class="chat-empty">
             <div class="chat-empty-icon"><i class="bi bi-chat-heart"></i></div>
@@ -68,9 +63,8 @@
             <div class="chat-header-avatar" [style.background]="conversazioneAttiva.colore">
               {{ conversazioneAttiva.iniziale }}
             </div>
-            <div class="flex-grow-1">
+            <div class="flex-grow-1 min-w-0">
               <span class="chat-header-nome">{{ conversazioneAttiva.venditore }}</span>
-
               @if (conversazioneAttiva.testo && !conversazioneAttiva.isVirtuale) {
                 <p class="chat-header-ultimo-msg">{{ conversazioneAttiva.testo }}</p>
               }
@@ -84,7 +78,6 @@
 
           <div class="chat-messages" #scrollContainer>
             @for (m of conversazioneAttiva.messaggi; track $index) {
-
               @if (m.separatore) {
                 <div class="chat-day-separator">
                   <span>{{ m.testo }}</span>
@@ -97,10 +90,9 @@
                   </div>
                 </div>
               }
-
             } @empty {
               @if (conversazioneAttiva.isVirtuale) {
-                <div class="text-center text-muted py-5">
+                <div class="text-center text-muted py-5 my-auto">
                   <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary"></i>
                   Nessun messaggio con questo utente per questo prodotto. <br>
                   Scrivi un messaggio per iniziare!
@@ -124,7 +116,6 @@
             </div>
           </div>
         }
-
       </div>
 
     </div>

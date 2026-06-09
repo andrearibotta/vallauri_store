@@ -2,19 +2,18 @@
 <div class="profilo-page">
   <div class="container py-4 py-lg-5">
 
-    <!-- ── HEADER PROFILO ── -->
     <div class="profilo-header-card mb-4">
 
-      <!-- Cover -->
       <div class="profilo-cover"></div>
 
       <div class="profilo-header-body">
-        <!-- Avatar + info principali -->
         <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-end gap-3">
           <div class="profilo-avatar-wrap">
-            <div class="profilo-avatar">M</div>
-            <div class="profilo-avatar-badge"><i class="bi bi-patch-check-fill"></i></div>
-          </div>
+  <div class="profilo-avatar">
+    {{ datiTotali.nome.charAt(0) }}{{ datiTotali.cognome.charAt(0) }}
+  </div>
+  <div class="profilo-avatar-badge"><i class="bi bi-patch-check-fill"></i></div>
+</div>
           <div class="flex-grow-1">
             <h1 class="profilo-nome">{{ datiTotali.nome }} {{ datiTotali.cognome }}</h1>
             <div class="d-flex flex-wrap gap-2 mt-1">
@@ -28,7 +27,6 @@
           </a>
         </div>
 
-        <!-- Statistiche -->
         <div class="profilo-stats mt-4">
           <div class="profilo-stat">
             <span class="profilo-stat-num">{{ datiTotali.stats.annunci_pubblicati }}</span>
@@ -56,10 +54,8 @@
 
     <div class="row g-4">
 
-      <!-- ── COLONNA SINISTRA ── -->
       <div class="col-lg-4">
 
-        <!-- Info personali -->
         <div class="profilo-card mb-4">
           <div class="profilo-card-header">
             <i class="bi bi-person me-2"></i>Informazioni
@@ -90,7 +86,14 @@
           </div>
         </div>
 
-        <!-- Valutazioni -->
+        <div class="mt-3 mb-4 text-center">
+          <button class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center" 
+                  style="border-radius: 12px; font-family: 'Poppins', sans-serif; font-weight: 600; padding: 0.6rem;" 
+                  data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+            <i class="bi bi-trash3 me-2"></i> Elimina il mio account
+          </button>
+        </div>
+
         @if(datiTotali.recensioni.length !== 0) {
           <div class="profilo-card">
             <div class="profilo-card-header">
@@ -118,7 +121,6 @@
         }
       </div>
 
-      <!-- ── COLONNA DESTRA: annunci ── -->
       <div class="col-lg-8">
         <div class="profilo-card">
           <div class="profilo-card-header d-flex align-items-center justify-content-between">
@@ -138,11 +140,15 @@
                       <i class="bi" [ngClass]="a.icon"></i>
                       <span class="annuncio-cond" [ngClass]="a.condClass">{{ a.condizione }}</span>
                       <div class="annuncio-actions">
-                        <button class="annuncio-action-btn" title="Modifica">
+                        <button class="annuncio-action-btn" title="Modifica" 
+                                data-bs-toggle="modal" data-bs-target="#editAnnuncioModal"
+                                (click)="modificaAnnuncio(a)">
                           <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="annuncio-action-btn danger" title="Elimina">
-                          <i class="bi bi-trash"></i>
+                        <button class="annuncio-action-btn danger" title="Elimina" 
+                                data-bs-toggle="modal" data-bs-target="#deleteAnnuncioModal" 
+                                (click)="impostaAnnuncioDaEliminare(a)">
+                          <i class="bi bi-trash3"></i>
                         </button>
                       </div>
                     </div>
@@ -160,8 +166,7 @@
               }
             </div>
 
-            <!-- Aggiungi annuncio -->
-            <div class="add-annuncio-btn mt-3">
+            <div class="add-annuncio-btn mt-3" routerLink="/carica">
               <i class="bi bi-plus-circle me-2"></i>Pubblica nuovo annuncio
             </div>
 
@@ -173,3 +178,86 @@
   </div>
 </div>
 }
+
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 18px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      <div class="modal-header border-0 pb-0 mt-2">
+        <h5 class="modal-title text-danger" id="deleteAccountModalLabel" style="font-family: 'Poppins', sans-serif; font-weight: 700;">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Attenzione
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="font-family: 'Poppins', sans-serif; color: var(--text-secondary, #4e7068); font-size: 0.95rem;">
+        Sei sicuro di voler eliminare definitivamente il tuo account? <br><br>
+        Questa azione <strong>non è reversibile</strong>. Perderai per sempre tutti i tuoi annunci, le recensioni ricevute e lo storico delle vendite.
+      </div>
+      <div class="modal-footer border-0 pt-0 mb-2">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">Annulla</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;" (click)="confermaEliminazioneAccount()">
+          Sì, elimina account
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteAnnuncioModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 18px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      <div class="modal-header border-0 pb-0 mt-2">
+        <h5 class="modal-title text-danger" style="font-family: 'Poppins', sans-serif; font-weight: 700;">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Elimina annuncio
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="font-family: 'Poppins', sans-serif; color: var(--text-secondary, #4e7068); font-size: 0.95rem;">
+        Sei sicuro di voler eliminare l'annuncio <strong>{{ annuncioSelezionato?.nome }}</strong>? <br><br>
+        Questa azione è irreversibile e il prodotto verrà rimosso definitivamente dal marketplace.
+      </div>
+      <div class="modal-footer border-0 pt-0 mb-2">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">Annulla</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;" (click)="confermaEliminazioneAnnuncio()">
+          Sì, elimina
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editAnnuncioModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 18px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      <div class="modal-header border-0 pb-0 mt-2">
+        <h5 class="modal-title" style="font-family: 'Poppins', sans-serif; font-weight: 700; color: #1a2e2b;">
+          <i class="bi bi-pencil-square me-2" style="color: #00b398;"></i>Modifica annuncio
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="font-family: 'Poppins', sans-serif;">
+
+        <div class="mb-3">
+          <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #4e7068;">Titolo Annuncio</label>
+          <input type="text" class="form-control" [(ngModel)]="annuncioDaModificare.nome" style="border-radius: 10px;" placeholder="Es. Libro di Matematica">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #4e7068;">Prezzo (€)</label>
+          <input type="number" step="0.01" class="form-control" [(ngModel)]="annuncioDaModificare.prezzo" style="border-radius: 10px;" placeholder="0.00">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #4e7068;">Descrizione</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="annuncioDaModificare.descrizione" style="border-radius: 10px;" placeholder="Aggiungi qualche dettaglio in più..."></textarea>
+        </div>
+
+      </div>
+      <div class="modal-footer border-0 pt-0 mb-2">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">Annulla</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600; background: #00b398; border: none;" (click)="salvaModificheAnnuncio()">
+          Salva Modifiche
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

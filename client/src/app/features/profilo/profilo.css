@@ -347,29 +347,39 @@
 
 .annuncio-actions {
   position: absolute;
-  top: 6px; right: 6px;
-  display: flex; gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  top: 8px; 
+  right: 8px;
+  display: flex; 
+  gap: 8px; /* Più spazio tra i due bottoni */
+  opacity: 1; /* Rimosso l'effetto hover: ORA SONO SEMPRE VISIBILI */
 }
 
 .annuncio-card:hover .annuncio-actions { opacity: 1; }
 
 .annuncio-action-btn {
-  width: 28px; height: 28px;
-  border-radius: 7px;
+  width: 36px; /* Ingranditi da 28px a 36px */
+  height: 36px;
+  border-radius: 8px;
   border: none;
-  background: rgba(255,255,255,0.92);
+  background: rgba(255, 255, 255, 0.95);
   color: #4a5568;
-  font-size: 0.75rem;
-  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; /* Icona più grande */
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Aggiunta ombra per farli staccare dallo sfondo */
+  transition: all 0.2s ease;
 }
 
-.annuncio-action-btn:hover { background: #fff; color: #00b398; }
-.annuncio-action-btn.danger:hover { color: #ef4444; }
-
+.annuncio-action-btn:hover { 
+  background: #fff; 
+  color: #00b398; 
+  transform: scale(1.08); /* Effetto ingrandimento al passaggio del mouse */
+}
+.annuncio-action-btn.danger:hover { 
+  color: #ef4444; 
+}
 .annuncio-body { padding: 0.7rem 0.85rem; }
 
 .annuncio-title {

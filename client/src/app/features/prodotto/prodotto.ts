@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { Httpcalls } from '../../services/httpcalls';
-import { Controllologin } from '../../services/controllologin'; // 1. Importa il servizio
+import { Controllologin } from '../../services/controllologin';
 
 @Component({
   selector: 'prodotto',
@@ -12,7 +12,7 @@ import { Controllologin } from '../../services/controllologin'; // 1. Importa il
   styleUrl: './prodotto.css',
 })
 export class Prodotto implements OnInit {
-  datiUtente: any = {};
+  datiUtente: any = {}; // Conterrà tutti i dettagli dell'annuncio/prodotto
   lstProdottiCasuali: any[] = [];
   lstCategorie: any[] = [];
 
@@ -23,15 +23,19 @@ export class Prodotto implements OnInit {
     1: 'Nuovo', 2: 'Ottimo', 3: 'Buono', 4: 'Discreto'
   };
 
-  // 2. Inietta il servizio nel costruttore
   constructor(
     private router: Router,
     private http: Httpcalls,
     private cdr: ChangeDetectorRef,
     private loginService: Controllologin
-  ) {}
+  ) {
+    // Intercettiamo i dati fin dal costruttore (approccio ottimale di Angular)
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state) {
+      this.gestisciStatoNavigazione(navigation.extras.state);
+    }
+  }
 
-  // 3. Creiamo delle proprietà "getter" dinamiche che leggono direttamente dal Signal
   get loggato(): boolean {
     return this.loginService.currentData() ? true : false;
   }
@@ -41,18 +45,46 @@ export class Prodotto implements OnInit {
     return data?.utenteLoggato || data || {};
   }
 
+  // Genera le iniziali in modo sicuro prevenendo crash se il nome non è ancora arrivato dal DB
+  get inizialiVenditore(): string {
+    const nome = this.datiUtente?.venditoreNome || this.datiUtente?.nome_venditore || '';
+    const cognome = this.datiUtente?.venditoreCognome || this.datiUtente?.cognome_venditore || '';
+    if (!nome && !cognome) return '?';
+    return (nome.charAt(0) + cognome.charAt(0)).toUpperCase();
+  }
+
   ngOnInit(): void {
-    const navState = history.state;
     this.caricaCategorie();
 
-    const idProdotto = navState?.id_prodotto || navState?.utente?.id_prodotto;
+    // Fallback di sicurezza se history.state è presente ma non era stato letto nel constructor
+    if (!this.datiUtente || Object.keys(this.datiUtente).length === 0) {
+      this.gestisciStatoNavigazione(history.state);
+    }
+  }
 
-    if (idProdotto) {
-      this.caricaDatiProdotto(idProdotto);
-    } else {
-      if (navState?.utente) {
-        this.datiUtente = navState.utente;
-        this.arricchisciDatiProdotto();
+  /**
+   * Estrae i dati passati dalla Home e avvia il recupero dei dati completi dal database
+   */
+  private gestisciStatoNavigazione(state: any): void {
+    if (!state) return;
+
+    // Supporta sia lo state 'datiProdotto' della Home, sia 'utente', sia l'ID diretto
+    const prodottoSorgente = state.datiProdotto || state.utente || (state.id_prodotto ? state : null);
+
+    if (prodottoSorgente) {
+      // Popoliamo subito la pagina con i dati parziali che già abbiamo per un caricamento istantaneo
+      this.datiUtente = { ...prodottoSorgente };
+      this.arricchisciDatiProdotto();
+
+      // Se dalla home arriva 'immagine_url' come stringa, la inseriamo provvisoriamente nell'array 'immagini'
+      if (this.datiUtente.immagine_url && (!this.datiUtente.immagini || this.datiUtente.immagini.length === 0)) {
+        const cleanPath = this.datiUtente.immagine_url.replace('https://api.vallauristore.it', '');
+        this.datiUtente.immagini = [cleanPath];
+      }
+
+      const idProdotto = this.datiUtente.id_prodotto || state.id_prodotto;
+      if (idProdotto) {
+        this.caricaDatiProdotto(idProdotto);
       }
     }
   }
@@ -93,7 +125,8 @@ export class Prodotto implements OnInit {
   caricaDatiProdotto(idProdotto: number) {
     this.http.Get(`/public/getProdottoCompleto/${idProdotto}`).subscribe({
       next: (prodottoCompleto: any) => {
-        this.datiUtente = prodottoCompleto;
+        // Uniamo i dati ricevuti per non perdere eventuali proprietà impostate precedentemente
+        this.datiUtente = { ...this.datiUtente, ...prodottoCompleto };
         this.arricchisciDatiProdotto();
 
         if (this.datiUtente?.id_categoria) {
@@ -144,8 +177,6 @@ export class Prodotto implements OnInit {
           dati: {
             id_venditore: this.datiUtente.id_venditore,
             id_prodotto: this.datiUtente.id_prodotto,
-
-            // Mappatura robusta con fallback per evitare i valori vuoti nella chat virtuale
             venditoreNome: this.datiUtente.venditoreNome || this.datiUtente.nome_venditore || 'Venditore',
             venditoreCognome: this.datiUtente.venditoreCognome || this.datiUtente.cognome_venditore || '',
             nomeProdotto: this.datiUtente.nome || this.datiUtente.nome_prodotto || 'Annuncio',

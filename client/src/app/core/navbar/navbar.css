@@ -10,6 +10,28 @@
   z-index: 1030;
   transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
+/* Definisci la grandezza della scatola del logo (cambia 35px con la misura che preferisci) */
+/* ===== LOGO ICONA (FAVICON) ===== */
+.brand-icon {
+  width: 60px !important;  /* Puoi modificare questo valore per ingrandirla (es. 45px) o rimpicciolirla (es. 35px) */
+  height: 60px !important; /* Mantienilo uguale a width per farla rimanere perfettamente quadrata */
+  background: linear-gradient(135deg, #00b398, #00d4b0);
+  border-radius: 10px;
+  display: flex !important; 
+  align-items: center !important; 
+  justify-content: center !important;
+  color: #fff; 
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 179, 152, 0.3);
+  overflow: hidden; /* Taglia l'immagine se esce fuori dai bordi arrotondati */
+}
+
+/* Costringi l'immagine dentro .brand-icon a prendere la dimensione corretta */
+.brand-icon img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important; /* Mantiene le proporzioni della favicon perfette */
+}
 
 [data-theme="dark"] #mainNav {
   background: rgba(13, 31, 28, 0.97);
@@ -17,14 +39,6 @@
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
 }
 
-.brand-icon {
-  width: 38px; height: 38px;
-  background: linear-gradient(135deg, #00b398, #00d4b0);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 1.1rem;
-  box-shadow: 0 4px 12px rgba(0, 179, 152, 0.3);
-}
 
 .brand-name {
   font-family: 'Poppins', sans-serif;

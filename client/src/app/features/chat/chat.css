@@ -1,16 +1,28 @@
 /* ===== CHAT PAGE ===== */
+/* ===== CHAT PAGE ===== */
 .chat-page {
-  min-height: 100vh;
+  height: calc(100vh - 75px);
   background: var(--bg-section, #f8fdfb);
-  transition: background 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column; /* Spinge il contenuto ad espandersi in verticale */
+}
+
+/* Forziamo il container di Bootstrap a prendere tutta l'altezza disponibile */
+.chat-page .container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; 
 }
 
 .chat-layout {
+  flex: 1; /* Dice alla chat di riempire al 100% il container */
   background: var(--bg-card, #fff);
   border-radius: 20px;
   border: 1.5px solid var(--border-color, #eef2f0);
   overflow: hidden;
-  min-height: 78vh;
+  width: 100%;
   box-shadow: 0 4px 24px rgba(0,0,0,0.05);
   transition: background 0.3s ease;
 }
@@ -20,7 +32,7 @@
   border-right: 1.5px solid var(--border-color, #eef2f0);
   display: flex;
   flex-direction: column;
-  height: 78vh;
+  height: 100%;
   transition: border-color 0.3s ease;
 }
 
@@ -30,6 +42,7 @@
   gap: 0.6rem;
   padding: 1.1rem 1.25rem;
   border-bottom: 1.5px solid var(--border-color, #eef2f0);
+  flex-shrink: 0; /* Impedisce alla testa di rimpicciolirsi */
 }
 
 .chat-sidebar-title {
@@ -38,7 +51,6 @@
   font-weight: 700;
   color: var(--text-primary, #1a2e2b);
   margin: 0;
-  transition: color 0.3s ease;
 }
 
 .chat-count {
@@ -52,7 +64,11 @@
 }
 
 /* Search */
-.chat-search-wrap { padding: 0.75rem 1rem; border-bottom: 1.5px solid var(--border-color, #eef2f0); }
+.chat-search-wrap { 
+  padding: 0.75rem 1rem; 
+  border-bottom: 1.5px solid var(--border-color, #eef2f0); 
+  flex-shrink: 0;
+}
 
 .chat-search-icon {
   background: var(--bg-section, #f4faf9);
@@ -81,8 +97,12 @@
 [data-theme="dark"] .chat-search-icon  { background: #162420; border-color: #224040; }
 [data-theme="dark"] .chat-search-input { background: #162420; border-color: #224040; color: #e8f5f2; }
 
-/* Lista */
-.chat-list { overflow-y: auto; flex: 1; }
+/* Lista contatti */
+.chat-list { 
+  overflow-y: auto; 
+  flex: 1; 
+  -webkit-overflow-scrolling: touch;
+}
 
 .chat-list-item {
   display: flex;
@@ -92,7 +112,6 @@
   cursor: pointer;
   border-bottom: 1px solid var(--border-color, #eef2f0);
   transition: background 0.15s ease;
-  position: relative;
 }
 
 .chat-list-item:hover   { background: var(--bg-section, #f8fdfb); }
@@ -106,33 +125,20 @@
   font-family: 'Poppins', sans-serif;
   font-size: 1rem; font-weight: 700;
   flex-shrink: 0;
-  position: relative;
-}
-
-.chat-online-dot {
-  position: absolute;
-  bottom: 1px; right: 1px;
-  width: 10px; height: 10px;
-  background: #22c55e;
-  border-radius: 50%;
-  border: 2px solid var(--bg-card, #fff);
 }
 
 .chat-list-nome {
   font-family: 'Poppins', sans-serif;
   font-size: 0.85rem; font-weight: 700;
   color: var(--text-primary, #1a2e2b);
-  transition: color 0.3s ease;
 }
 
 .chat-list-ora {
-  font-family: 'Poppins', sans-serif;
   font-size: 0.7rem;
   color: var(--text-muted, #7a9590);
 }
 
 .chat-list-preview {
-  font-family: 'Poppins', sans-serif;
   font-size: 0.78rem;
   color: var(--text-muted, #7a9590);
   margin: 0.1rem 0;
@@ -140,30 +146,29 @@
 }
 
 .chat-list-prodotto {
-  font-family: 'Poppins', sans-serif;
   font-size: 0.7rem;
   color: #00b398;
   font-weight: 500;
 }
 
-.chat-unread {
-  background: #00b398;
-  color: #fff;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.68rem; font-weight: 700;
-  width: 20px; height: 20px;
+.chat-list-avatar-wrap { position: relative; flex-shrink: 0; }
+
+.chat-unread-dot {
+  position: absolute;
+  top: 0; right: 0;
+  width: 11px; height: 11px;
+  background: #ef4444;
   border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  border: 2px solid white;
 }
 
 .min-w-0 { min-width: 0; }
 
-/* ── AREA CHAT ── */
+/* ── AREA CHAT MAIN ── */
 .chat-main {
   display: flex;
   flex-direction: column;
-  height: 78vh;
+  height: 100%;
 }
 
 /* Empty state */
@@ -186,11 +191,9 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   color: var(--text-primary, #1a2e2b);
-  transition: color 0.3s ease;
 }
 
 .chat-empty-sub {
-  font-family: 'Poppins', sans-serif;
   font-size: 0.875rem;
   color: var(--text-muted, #7a9590);
   text-align: center;
@@ -204,7 +207,7 @@
   padding: 0.9rem 1.25rem;
   border-bottom: 1.5px solid var(--border-color, #eef2f0);
   background: var(--bg-card, #fff);
-  transition: background 0.3s ease;
+  flex-shrink: 0;
 }
 
 .chat-back-btn {
@@ -219,10 +222,8 @@
   border-radius: 11px;
   display: flex; align-items: center; justify-content: center;
   color: #fff;
-  font-family: 'Poppins', sans-serif;
   font-size: 0.95rem; font-weight: 700;
   flex-shrink: 0;
-  position: relative;
 }
 
 .chat-header-nome {
@@ -230,13 +231,14 @@
   font-family: 'Poppins', sans-serif;
   font-size: 0.9rem; font-weight: 700;
   color: var(--text-primary, #1a2e2b);
-  transition: color 0.3s ease;
 }
 
-.chat-header-status {
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.72rem;
-  color: #22c55e;
+.chat-header-ultimo-msg {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* Prodotto in header */
@@ -249,42 +251,37 @@
   border-radius: 10px;
   padding: 0.4rem 0.75rem;
   border: 1px solid var(--border-color, #eef2f0);
+  flex-shrink: 0;
 }
 
 .chp-label {
-  font-family: 'Poppins', sans-serif;
   font-size: 0.65rem;
   color: var(--text-muted, #7a9590);
   text-transform: uppercase; letter-spacing: 0.5px;
 }
 
 .chp-nome {
-  font-family: 'Poppins', sans-serif;
   font-size: 0.78rem; font-weight: 600;
   color: var(--text-primary, #1a2e2b);
-  max-width: 140px;
+  max-width: 120px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  transition: color 0.3s ease;
 }
 
 .chp-prezzo {
-  font-family: 'Poppins', sans-serif;
   font-size: 0.8rem; font-weight: 700;
   color: #00916f;
 }
 
-[data-theme="dark"] .chp-prezzo { color: #00d4b0; }
-
-/* Messaggi */
+/* Area scorrimento Messaggi */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
   background: var(--bg-section, #f8fdfb);
-  transition: background 0.3s ease;
+  -webkit-overflow-scrolling: touch;
 }
 
 .chat-day-separator {
@@ -296,38 +293,25 @@
 
 .chat-day-separator::before,
 .chat-day-separator::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border-color, #eef2f0);
+  content: ''; flex: 1; height: 1px; background: var(--border-color, #eef2f0);
 }
 
 .chat-day-separator span {
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.72rem;
-  color: var(--text-muted, #7a9590);
-  white-space: nowrap;
+  font-size: 0.72rem; color: var(--text-muted, #7a9590);
 }
 
-.chat-msg-wrap {
-  display: flex;
-  justify-content: flex-start;
-}
-
+.chat-msg-wrap { display: flex; justify-content: flex-start; }
 .chat-msg-wrap.sent { justify-content: flex-end; }
 
 .chat-bubble {
-  max-width: 68%;
+  max-width: 75%;
   background: var(--bg-card, #fff);
   border: 1.5px solid var(--border-color, #eef2f0);
   border-radius: 16px 16px 16px 4px;
   padding: 0.65rem 0.9rem;
-  font-family: 'Poppins', sans-serif;
   font-size: 0.875rem;
   color: var(--text-primary, #1a2e2b);
-  line-height: 1.5;
-  position: relative;
-  transition: background 0.3s ease, color 0.3s ease;
+  line-height: 1.4;
 }
 
 .chat-bubble.sent {
@@ -338,31 +322,25 @@
 }
 
 .chat-bubble-ora {
-  display: block;
-  font-size: 0.65rem;
-  margin-top: 4px;
-  opacity: 0.65;
-  text-align: right;
+  display: block; font-size: 0.65rem; margin-top: 4px; opacity: 0.7; text-align: right;
 }
 
-/* Input */
+/* Input Area */
 .chat-input-area {
   padding: 0.9rem 1.1rem;
   border-top: 1.5px solid var(--border-color, #eef2f0);
   background: var(--bg-card, #fff);
-  transition: background 0.3s ease;
+  flex-shrink: 0; /* Evita che l'input sparisca */
 }
 
 .chat-input {
   border: 1.5px solid var(--border-soft, #d0ede9);
   border-right: none;
   background: var(--bg-section, #f4faf9);
-  font-family: 'Poppins', sans-serif;
   font-size: 0.875rem;
   color: var(--text-primary, #1a2e2b);
   border-radius: 12px 0 0 12px !important;
   padding: 0.7rem 1rem;
-  transition: all 0.2s ease;
 }
 
 .chat-input:focus {
@@ -371,54 +349,44 @@
   box-shadow: none;
 }
 
-[data-theme="dark"] .chat-input {
-  background: #162420; border-color: #224040; color: #e8f5f2;
-}
-
 .chat-send-btn {
   background: linear-gradient(135deg, #00b398, #00c9ac);
-  color: #fff;
-  border: none;
+  color: #fff; border: none;
   border-radius: 0 12px 12px 0 !important;
   padding: 0 1.1rem;
-  font-size: 1rem;
-  transition: all 0.2s ease;
 }
 
-.chat-send-btn:hover {
-  background: linear-gradient(135deg, #009e86, #00b398);
-  color: #fff;
-}
-
-/* ── Mobile ── */
+/* ── Mobile Fixes (Sotto i 768px) ── */
 @media (max-width: 767px) {
-  .chat-sidebar, .chat-main { width: 100%; height: calc(100vh - 130px); }
+  .chat-page {
+    /* Blocco totale dell'altezza mobile per evitare scroll esterni */
+    height: calc(100vh - 65px); 
+    padding: 0 !important;
+  }
+  
+  .container {
+    padding: 0 !important;
+    max-width: 100% !important;
+    height: 100%;
+  }
+
+  .chat-layout {
+    border-radius: 0;
+    border: none;
+    height: 100%;
+  }
+
+  .chat-sidebar, .chat-main { 
+    width: 100%; 
+    height: 100%; 
+  }
+  
   .mobile-hidden { display: none !important; }
-  .chat-layout { border-radius: 14px; min-height: unset; }
-}
-
-.chat-list-avatar-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.chat-unread-dot {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 11px;
-  height: 11px;
-  background: #ef4444;
-  border-radius: 50%;
-  border: 2px solid white;
-}
-
-.chat-header-ultimo-msg {
-  font-size: 0.78rem;
-  color: #6b7280;
-  margin: 2px 0 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 260px;
+  
+  /* Rimpiccioliamo leggermente le info del prodotto in testa per far spazio su schermi stretti */
+  .chat-header-prodotto {
+    max-width: 100px;
+    padding: 0.25rem 0.5rem;
+  }
+  .chp-nome { max-width: 80px; }
 }

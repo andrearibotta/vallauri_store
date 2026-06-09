@@ -1,6 +1,3 @@
-<!-- ===== HOME ===== -->
-
-<!-- HERO -->
 <section class="hero-section">
   <div class="container">
     <div class="row align-items-center min-vh-70 py-5">
@@ -16,32 +13,27 @@
           Tutto a pochi passi da te, nella tua scuola.
         </p>
         <div class="d-flex flex-wrap gap-3 mt-4">
-          <a routerLink="/annunci" class="btn btn-hero-primary">
+          <a class="btn btn-hero-primary" routerLink="/" fragment="annunci-evidenza">
             <i class="bi bi-search me-2"></i>Esplora gli annunci
           </a>
-          <a routerLink="/annunci/nuovo" class="btn btn-hero-outline">
+          <a class="btn btn-hero-outline" (click) = "verificaEIniziaVendita()">
             <i class="bi bi-plus-lg me-2"></i>Vendi qualcosa
           </a>
         </div>
-        <!--&lt;!&ndash; Stats rapide &ndash;&gt;
-        <div class="hero-stats d-flex flex-wrap gap-4 mt-5">
-          <div class="stat-item">
-            <span class="stat-num">120+</span>
-            <span class="stat-label">Annunci attivi</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num">300+</span>
-            <span class="stat-label">Studenti iscritti</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num">€5k+</span>
-            <span class="stat-label">Risparmiati</span>
-          </div>
-        </div>-->
       </div>
       <div class="col-lg-6 col-md-5 d-none d-md-flex justify-content-center">
-        <div class="hero-illustration">
-          <i class="bi bi-bag-heart"></i>
+        <div class="hero-brand-container">
+          <div class="hero-brand-card animate-float">
+            <div class="hero-brand-logo-wrap">
+              <img src="favicon.ico" alt="Vallauristore Logo">
+            </div>
+            <div class="hero-brand-info">
+              <h4 class="brand-card-title">Vallauristore</h4>
+              <p class="brand-card-status"><span class="status-dot"></span> Online nella tua scuola</p>
+            </div>
+          </div>
+          <div class="decor-circle-1"></div>
+          <div class="decor-circle-2"></div>
         </div>
       </div>
     </div>
@@ -50,7 +42,6 @@
   <div class="hero-blob hero-blob-2"></div>
 </section>
 
-<!-- CATEGORIE -->
 <section class="categories-section py-5">
   <div class="container">
     <div class="section-header text-center mb-5">
@@ -58,7 +49,6 @@
       <p class="section-sub">Scegli una categoria e trova subito quello che ti serve</p>
     </div>
     <div class="row g-3 justify-content-center">
-      <!-- categoria 1 -->
       <div class="col-6 col-md-4 col-lg-2">
         <a class="cat-card" routerLink="/categorie/libri">
           <div class="cat-icon" style="--cat-color: #00b398; --cat-bg: #e6faf7;">
@@ -67,7 +57,6 @@
           <span class="cat-label">Libri</span>
         </a>
       </div>
-      <!-- categoria 2 -->
       <div class="col-6 col-md-4 col-lg-2">
         <a class="cat-card" routerLink="/categorie/appunti">
           <div class="cat-icon" style="--cat-color: #3b82f6; --cat-bg: #eff6ff;">
@@ -76,7 +65,6 @@
           <span class="cat-label">Appunti</span>
         </a>
       </div>
-      <!-- categoria 3 -->
       <div class="col-6 col-md-4 col-lg-2">
         <a class="cat-card" routerLink="/categorie/abbigliamento">
           <div class="cat-icon" style="--cat-color: #f59e0b; --cat-bg: #fffbeb;">
@@ -85,7 +73,6 @@
           <span class="cat-label">Abbigliamento</span>
         </a>
       </div>
-      <!-- categoria 4 -->
       <div class="col-6 col-md-4 col-lg-2">
         <a class="cat-card" routerLink="/categorie/cancelleria">
           <div class="cat-icon" style="--cat-color: #8b5cf6; --cat-bg: #f5f3ff;">
@@ -94,7 +81,6 @@
           <span class="cat-label">Cancelleria</span>
         </a>
       </div>
-      <!-- categoria 5 -->
       <div class="col-6 col-md-4 col-lg-2">
         <a class="cat-card" routerLink="/categorie/elettronica">
           <div class="cat-icon" style="--cat-color: #ec4899; --cat-bg: #fdf2f8;">
@@ -103,7 +89,6 @@
           <span class="cat-label">Elettronica</span>
         </a>
       </div>
-      <!-- categoria 6 -->
       <div class="col-6 col-md-4 col-lg-2">
         <a class="cat-card" routerLink="/categorie/sport">
           <div class="cat-icon" style="--cat-color: #ef4444; --cat-bg: #fef2f2;">
@@ -116,104 +101,58 @@
   </div>
 </section>
 
-<!-- ANNUNCI RECENTI -->
-<section class="listings-section py-5">
-  <div class="container">
+<section  class="listings-section py-5">
+  <div id="annunci-evidenza" class="container">
     <div class="d-flex align-items-center justify-content-between mb-4">
       <div>
-        <h2 class="section-title mb-1">Annunci recenti</h2>
-        <p class="section-sub mb-0">Appena pubblicati dai tuoi compagni</p>
+        <h2 class="section-title mb-1">Annunci in evidenza</h2>
+        <p class="section-sub mb-0">Scelti casualmente per te dal nostro catalogo</p>
       </div>
       <a routerLink="/annunci" class="btn btn-see-all">
         Vedi tutti <i class="bi bi-arrow-right ms-1"></i>
       </a>
     </div>
+    
     <div class="row g-3">
-      <!-- Card 1 -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="listing-card">
-          <div class="listing-img-wrap">
-            <div class="listing-img-placeholder">
-              <i class="bi bi-book"></i>
+      @for (p of prodottiCasuali; track p.id_prodotto) {
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="listing-card" (click)="apriDettaglioProdotto(p)" style="cursor: pointer;">
+            <div class="listing-img-wrap" style="position: relative; overflow: hidden; height: 200px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+              
+              @if (p.immagine_url) {
+                <img [src]="p.immagine_url" alt="{{ p.nome }}" style="width: 100%; height: 100%; object-fit: cover;">
+              } @else {
+                <div class="listing-img-placeholder" style="font-size: 2.5rem; color: #6c757d;">
+                  <i class="bi bi-box-seam"></i>
+                </div>
+              }
+              
+              <span class="listing-condition good">{{ p.condizione || 'Usato' }}</span>
+              <button class="listing-fav" (click)="$event.stopPropagation()"><i class="bi bi-heart"></i></button>
             </div>
-            <span class="listing-condition good">Buono</span>
-            <button class="listing-fav"><i class="bi bi-heart"></i></button>
-          </div>
-          <div class="listing-body">
-            <p class="listing-title">Matematica - Bergamini vol.2</p>
-            <p class="listing-sub">Liceo Scientifico · 3ª anno</p>
-            <div class="d-flex align-items-center justify-content-between mt-2">
-              <span class="listing-price">€ 8,00</span>
-              <span class="listing-seller"><i class="bi bi-person-circle me-1"></i>Marco R.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Card 2 -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="listing-card">
-          <div class="listing-img-wrap">
-            <div class="listing-img-placeholder">
-              <i class="bi bi-headphones"></i>
-            </div>
-            <span class="listing-condition great">Ottimo</span>
-            <button class="listing-fav"><i class="bi bi-heart"></i></button>
-          </div>
-          <div class="listing-body">
-            <p class="listing-title">Cuffie wireless JBL</p>
-            <p class="listing-sub">Elettronica</p>
-            <div class="d-flex align-items-center justify-content-between mt-2">
-              <span class="listing-price">€ 20,00</span>
-              <span class="listing-seller"><i class="bi bi-person-circle me-1"></i>Sara B.</span>
+            
+            <div class="listing-body">
+              <p class="listing-title text-truncate" style="font-weight: 600; margin-bottom: 4px;">{{ p.nome }}</p>
+              <p class="listing-sub text-truncate" style="font-size: 0.85rem; color: #6c757d;">{{ p.descrizione || 'Nessuna descrizione disponibile' }}</p>
+              <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="listing-price" style="font-weight: 700; color: #198754;">€ {{ p.prezzo }}</span>
+                <span class="listing-seller" style="font-size: 0.85rem; color: #495057;">
+                  <i class="bi bi-arrow-right-circle me-1"></i>Dettagli
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <!-- Card 3 -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="listing-card">
-          <div class="listing-img-wrap">
-            <div class="listing-img-placeholder">
-              <i class="bi bi-journal-text"></i>
-            </div>
-            <span class="listing-condition ok">Discreto</span>
-            <button class="listing-fav"><i class="bi bi-heart"></i></button>
-          </div>
-          <div class="listing-body">
-            <p class="listing-title">Appunti Fisica - tutto il programma</p>
-            <p class="listing-sub">5ª anno · Scientifico</p>
-            <div class="d-flex align-items-center justify-content-between mt-2">
-              <span class="listing-price">€ 5,00</span>
-              <span class="listing-seller"><i class="bi bi-person-circle me-1"></i>Luca M.</span>
-            </div>
-          </div>
+      } @empty {
+        <div class="col-12 text-center py-5 text-muted">
+          <i class="bi bi-hourglass-split fs-2 d-block mb-2"></i>
+          Sto cercando gli annunci migliori per te...
         </div>
-      </div>
-      <!-- Card 4 -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="listing-card">
-          <div class="listing-img-wrap">
-            <div class="listing-img-placeholder">
-              <i class="bi bi-bag"></i>
-            </div>
-            <span class="listing-condition great">Nuovo</span>
-            <button class="listing-fav"><i class="bi bi-heart"></i></button>
-          </div>
-          <div class="listing-body">
-            <p class="listing-title">Felpa scuola taglia M</p>
-            <p class="listing-sub">Abbigliamento</p>
-            <div class="d-flex align-items-center justify-content-between mt-2">
-              <span class="listing-price">€ 12,00</span>
-              <span class="listing-seller"><i class="bi bi-person-circle me-1"></i>Giada T.</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      }
     </div>
   </div>
 </section>
 
-<!-- COME FUNZIONA -->
 <section class="how-section py-5">
   <div class="container">
     <div class="section-header text-center mb-5">
@@ -249,15 +188,36 @@
   </div>
 </section>
 
-<!-- CTA FINALE -->
 <section class="cta-section py-5 my-4">
   <div class="container">
     <div class="cta-card text-center">
       <h2 class="cta-title">Hai qualcosa da vendere?</h2>
       <p class="cta-sub">Pubblica il tuo annuncio in meno di 2 minuti e raggiungi tutti gli studenti.</p>
-      <a routerLink="/annunci/nuovo" class="btn btn-cta mt-3">
+      <a class="btn btn-cta mt-3" (click) = "verificaEIniziaVendita()">
         <i class="bi bi-plus-circle me-2"></i>Pubblica ora, è gratis
       </a>
     </div>
   </div>
 </section>
+
+<div class="modal fade" id="authWarningModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 18px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+      <div class="modal-header border-0 pb-0 mt-2">
+        <h5 class="modal-title" style="font-family: 'Poppins', sans-serif; font-weight: 700; color: #dc3545;">
+          <i class="bi bi-shield-lock-fill me-2"></i>Accesso Limitato
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="font-family: 'Poppins', sans-serif; color: #4e7068; font-size: 0.95rem;">
+        Per poter pubblicare un annuncio e vendere i tuoi oggetti sul marketplace devi prima effettuare l'accesso al tuo account.
+      </div>
+      <div class="modal-footer border-0 pt-0 mb-2">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">Annulla</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600; background: #00b398; border: none;" (click)="vaiAlLogin()">
+          Accedi ora
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

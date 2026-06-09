@@ -64,6 +64,7 @@ export class Ricerca implements OnInit {
         this.http.Post('/ai/chat', { message: this.searchQuery }).subscribe({
           next: data => {
             this.risultatiRicerca = data.products;
+            console.log(this.risultatiRicerca)
             this.isLoading = false;
             this.cdr.detectChanges();
           },

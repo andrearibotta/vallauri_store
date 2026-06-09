@@ -1,20 +1,20 @@
-import {AfterViewInit, OnInit} from '@angular/core';
-import {Component, NgModule} from '@angular/core';
+import { AfterViewInit, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Httpcalls } from '../../services/httpcalls';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router'; // Aggiunto RouterLink agli import se serve
 import { FormsModule } from '@angular/forms';
-import {Controllologin} from '../../services/controllologin';
+import { Controllologin } from '../../services/controllologin';
 
 @Component({
   selector: 'login',
-  imports: [FormsModule],
+  standalone: true, // Se è un componente standalone
+  imports: [FormsModule, RouterLink], // Aggiunto RouterLink per supportare il "Torna alla home"
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class Login implements AfterViewInit, OnInit {
   email: string = "";
   password: string = "";
-  //registrati: boolean = false;
 
   rpwd: string = "";
   remail: string = "";
@@ -29,24 +29,9 @@ export class Login implements AfterViewInit, OnInit {
   classiperind: any[] = [];
 
   classesel: string = "";
-
-  prelogin: any = {}; //dati ricevuti quando arrivo al login cliccando "contatta un venditore"
+  prelogin: any = {}; 
 
   ngOnInit() {
-    /*this.http.Get('/public/getAllClassi').subscribe({
-      next:data =>{
-        this.classi = data.classe;
-
-        this.indirizzi = this.classi
-          .map(item => item.indirizzo)
-          .filter((indirizzo, indice, array) => array.indexOf(indirizzo) === indice);
-
-        console.log("classi:", data)
-
-        console.log("indirizzi:", this.indirizzi)
-      }
-    })*/
-
     this.prelogin = history.state.dati;
     console.log(this.prelogin);
   }
@@ -62,7 +47,7 @@ export class Login implements AfterViewInit, OnInit {
     document.getElementById('tabLogin')!.classList.add('active');
     document.getElementById('tabRegister')!.classList.remove('active');
     document.getElementById('cardTitle')!.textContent = 'Bentornato!';
-    document.getElementById('cardSubtitle')!.textContent = 'Accedi a vallauristore con la tua email scolastica';
+    document.getElementById('cardSubtitle')!.textContent = 'Accedi a ScambiAmo con la tua email scolastica';
   }
 
   showRegister(): void {
@@ -71,25 +56,15 @@ export class Login implements AfterViewInit, OnInit {
     document.getElementById('tabLogin')!.classList.remove('active');
     document.getElementById('tabRegister')!.classList.add('active');
     document.getElementById('cardTitle')!.textContent = 'Crea account';
-    document.getElementById('cardSubtitle')!.textContent = 'Unisciti a vallauristore gratuitamente';
+    document.getElementById('cardSubtitle')!.textContent = 'Unisciti a ScambiAmo gratuitamente';
   }
 
   constructor(private http: Httpcalls, private router: Router, private navbarService: Controllologin) {
   }
 
   googleLogin() {
-    /*this.http.Get("/auth/google").subscribe(
-      {
-        next: data => {
-          console.log("LOGIN FUNZIONANTE: ", data)
-        },
-        error: err => {
-          console.log("errore: ", err);
-        }
-      }
-    )*/
     try {
-      window.location.href = 'http://localhost:3000/api/auth/google';
+      window.location.href = 'https://api.vallauristore.it/api/auth/google';
     } catch (err) {
       console.log("Errore indirizzamento google")
       console.error(err)
@@ -97,17 +72,25 @@ export class Login implements AfterViewInit, OnInit {
   }
 
   login() {
-    this.http.Post('/auth/login',{ email: this.email, password: this.password }).subscribe({
-      next:data =>{
+    this.http.Post('/auth/login', { email: this.email, password: this.password }).subscribe({
+      next: data => {
         console.log("dati login: ", data)
         this.navbarService.updateData(data);
         this.router.navigate(['/home']);
+      },
+      error: err => {
+        console.error("Errore login:", err);
+        // ── APRE IL POPUP DI ERRORE SE LE CREDENZIALI SONO ERRATE ──
+        const modalElement = document.getElementById('loginErrorModal');
+        if (modalElement) {
+          const modalBootstrap = new (window as any).bootstrap.Modal(modalElement);
+          modalBootstrap.show();
+        }
       }
     })
   }
 
   registrati() {
-    //console.log(this.classesel)
     let data: any = {}
     data.nome = this.rnome;
     data.cognome = this.rcognome;
@@ -115,17 +98,17 @@ export class Login implements AfterViewInit, OnInit {
     data.password = this.rpwd;
     data.idClasse = this.classesel;
 
-    this.http.Post('/auth/register',{ data }).subscribe({
-      next:data =>{
+    this.http.Post('/auth/register', { data }).subscribe({
+      next: data => {
         console.log(data)
-        console.log(this.rnome)
-        this.http.Post('/email/conntact',{name:this.rnome,email:this.remail,subject:"Benvenuto in Vallauristore",htmlMessage:`<h2>Benvenuto in Vallauristore</h2> Grazie per esserti unito alla comunity di vallauristore ${this.rnome}`}).subscribe({
-          next: (response) =>{
-            console.log(response)
-          },
-          error: (err) =>{
-            console.log(err)
-          }
+        this.http.Post('/email/contact', {
+          name: this.rnome,
+          email: this.remail,
+          subject: "Benvenuto in ScambiAmo",
+          htmlMessage: `<h2>Benvenuto in ScambiAmo</h2> Grazie per esserti unito alla comunity di ScambiAmo ${this.rnome}`
+        }).subscribe({
+          next: (response) => { console.log(response) },
+          error: (err) => { console.log(err) }
         })
         console.log("REGISTRATO CON SUCCESSO")
         this.router.navigate(['/home']);
@@ -138,16 +121,11 @@ export class Login implements AfterViewInit, OnInit {
 
   invialoginallanavbar() {
     this.navbarService.updateData({ titolo: 'Profilo Utente', notifiche: 5 });
-
     this.router.navigate(['/profilo']);
   }
 
-  selind(){
+  selind() {
     this.indselezionato = true;
-    console.log(this.strind)
-
     this.classiperind = this.classi.filter(item => item.indirizzo === this.strind);
-
-    console.log("classiperind: ", this.classiperind)
   }
 }

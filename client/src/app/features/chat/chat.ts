@@ -28,13 +28,36 @@ export class Chat implements OnInit {
   constructor(private http: Httpcalls, private ngZone: NgZone, private cdr: ChangeDetectorRef) { }
 
   ngOnInit() {
-    // 1. Inizializza utente loggato forzando l'ID a essere un Numero
-    this.utenteLoggato = history.state.utenteLoggato || { id: 53 };
-    this.utenteLoggato.id = Number(this.utenteLoggato.id);
+    // Recuperiamo in modo sicuro l'utente autenticato tramite sessione/cookie prima di fare qualsiasi cosa
+    this.http.Get('/auth/me').subscribe({
+      next: (data: any) => {
+        if (data && data.user) {
+          this.utenteLoggato = data.user;
+          this.utenteLoggato.id = Number(this.utenteLoggato.id);
+        } else {
+          // Fallback se la struttura è diversa
+          this.utenteLoggato = history.state.utenteLoggato || { id: 53 };
+          this.utenteLoggato.id = Number(this.utenteLoggato.id);
+        }
+        // Una volta ottenuto l'ID certo, inizializziamo la chat
+        this.inizializzaChatESocket();
+      },
+      error: (err) => {
+        console.error("Errore nel recupero dell'utente loggato, uso fallback:", err);
+        this.utenteLoggato = history.state.utenteLoggato || { id: 53 };
+        this.utenteLoggato.id = Number(this.utenteLoggato.id);
+        this.inizializzaChatESocket();
+      }
+    });
+  }
 
+  /**
+   * Inizializza i contatti e la connessione socket solo dopo aver stabilito l'ID utente
+   */
+  inizializzaChatESocket() {
     this.caricaContatti();
 
-    // 2. Connessione Socket
+    // Connessione Socket
     this.socket = io('https://api.vallauristore.it', {
       withCredentials: true
     });
@@ -83,24 +106,17 @@ export class Chat implements OnInit {
     });
   }
 
-  /**
-   * Verifica se esiste già una chat attiva per questo prodotto con questo venditore.
-   * Se non esiste, crea un contatto fittizio a runtime in cima alla lista.
-   */
   gestisciNuovoContattoDaProdotto(dati: any) {
     const idVenditore = Number(dati.id_venditore);
     const idProdotto = Number(dati.id_prodotto);
 
-    // Cerca se esiste già nei contatti caricati dal DB
     const chatEsistente = this.contattiContattati.find((c: any) =>
       Number(c.id_utente) === idVenditore && Number(c.id_prodotto) === idProdotto
     );
 
     if (chatEsistente) {
-      // Se esiste già, apri semplicemente la chat esistente
       this.apriChat(chatEsistente);
     } else {
-      // Se non esiste, andiamo a comporre un oggetto "contatto virtuale" temporaneo
       const contattoVirtuale = {
         id_utente: idVenditore,
         id_prodotto: idProdotto,
@@ -110,13 +126,10 @@ export class Chat implements OnInit {
         prezzo: dati.prezzo || '0.00',
         testo: 'Inizia la conversazione...',
         ora: new Date().toISOString(),
-        isVirtuale: true // Flag per riconoscerlo a runtime
+        isVirtuale: true
       };
 
-      // Inserimento in cima alla lista laterale sinistra
       this.contattiContattati.unshift(contattoVirtuale);
-
-      // Apertura automatica immediata della conversazione
       this.apriChat(contattoVirtuale);
     }
   }
@@ -126,7 +139,6 @@ export class Chat implements OnInit {
     this.chatAperta = true;
     this.conversazioneAttiva.messaggi = [];
 
-    // Generiamo iniziali e proprietà grafiche di fallback utili per il contatto virtuale o dati incompleti
     this.conversazioneAttiva.iniziale = contatto.nome ? contatto.nome.charAt(0).toUpperCase() : 'V';
     this.conversazioneAttiva.colore = contatto.colore || 'linear-gradient(135deg, #3b82f6, #60a5fa)';
     this.conversazioneAttiva.venditore = `${contatto.nome} ${contatto.cognome}`.trim();
@@ -134,7 +146,6 @@ export class Chat implements OnInit {
     const chiave = `${contatto.id_utente}_${contatto.id_prodotto}`;
     this.nonLetti.delete(chiave);
 
-    // Se è un contatto virtuale temporaneo senza storicità, evitiamo la chiamata GET a vuoto
     if (contatto.isVirtuale) {
       this.cdr.detectChanges();
       this.scrollToBottom();
@@ -179,7 +190,6 @@ export class Chat implements OnInit {
     };
 
     this.nuovoMessaggio = '';
-
     console.log("INVIANDO AL SERVER QUESTO PAYLOAD:", payload);
     this.socket.emit("send_message", payload);
   }
@@ -200,7 +210,6 @@ export class Chat implements OnInit {
       contatto.testo = msg.testo_messaggio;
       contatto.ora = msg.timestamp;
 
-      // Se era un contatto virtuale e l'invio è andato a buon fine, rimuoviamo il flag temporaneo
       if (contatto.isVirtuale) {
         delete contatto.isVirtuale;
       }

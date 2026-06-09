@@ -1,65 +1,71 @@
-<!-- ===== PAGINA PRODOTTO ===== -->
 <div class="prodotto-page">
   <div class="container py-4 py-lg-5">
 
-    <!-- Breadcrumb -->
     <nav class="prodotto-breadcrumb mb-4">
       <a routerLink="/">Home</a>
       <i class="bi bi-chevron-right"></i>
       <a routerLink="/ricerca">Annunci</a>
       <i class="bi bi-chevron-right"></i>
-      <span>{{ datiUtente.nome }}</span>
+      <span>{{ datiUtente?.nome }}</span>
     </nav>
 
     <div class="row g-4 g-lg-5">
 
-      <!-- ── COLONNA SINISTRA: immagine ── -->
       <div class="col-lg-5">
         <div class="prodotto-img-card">
           <div class="prodotto-img-wrap" [ngClass]="gradientClass">
-            <i class="bi prodotto-img-icon" [ngClass]="categoryIcon"></i>
+            @if (datiUtente?.immagini && datiUtente.immagini.length > 0) {
+              <img [src]="datiUtente.immagini[0].startsWith('http') ? datiUtente.immagini[0] : 'http://localhost:3000' + datiUtente.immagini[0]"
+                   alt="Foto prodotto"
+                   style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
+            } @else {
+              <i class="bi prodotto-img-icon" [ngClass]="categoryIcon"></i>
+            }
           </div>
-          <!-- Thumbnail placeholder aggiuntive -->
           <div class="prodotto-thumbs">
-            <div class="thumb active" [ngClass]="gradientClass">
-              <i class="bi" [ngClass]="categoryIcon"></i>
-            </div>
-            <div class="thumb thumb-empty"><i class="bi bi-plus"></i></div>
-            <div class="thumb thumb-empty"><i class="bi bi-plus"></i></div>
+            @for (img of datiUtente?.immagini; track $index) {
+              <div class="thumb" [ngClass]="gradientClass">
+                <img [src]="img.startsWith('http') ? img : 'http://localhost:3000' + img"
+                     alt="Foto {{$index + 1}}"
+                     style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
+              </div>
+            }
+            @if (!datiUtente?.immagini || datiUtente.immagini.length === 0) {
+              <div class="thumb active" [ngClass]="gradientClass">
+                <i class="bi" [ngClass]="categoryIcon"></i>
+              </div>
+            }
           </div>
         </div>
       </div>
 
-      <!-- ── COLONNA DESTRA: dettagli ── -->
       <div class="col-lg-7">
 
-        <!-- Badge categoria + condizione -->
         <div class="d-flex flex-wrap gap-2 mb-3">
           <span class="prodotto-badge badge-category">
-            <i class="bi bi-tag me-1"></i>{{ datiUtente.categoria }}
+            <i class="bi bi-tag me-1"></i>{{ datiUtente?.categoria || 'Categoria' }}
           </span>
           <span class="prodotto-badge badge-condition">
-            <i class="bi bi-star me-1"></i>{{ datiUtente.condizione }}
+            <i class="bi bi-star me-1"></i>{{ datiUtente?.condizione || 'Usato' }}
           </span>
         </div>
 
-        <!-- Nome -->
-        <h1 class="prodotto-nome">{{ datiUtente.nome }}</h1>
+        <h1 class="prodotto-nome">{{ datiUtente?.nome || 'Caricamento annuncio...' }}</h1>
 
-        <!-- Prezzo -->
         <div class="prodotto-prezzo-wrap my-3">
-          <span class="prodotto-prezzo">€ {{ datiUtente.prezzo }}</span>
+          <span class="prodotto-prezzo">€ {{ datiUtente?.prezzo || '0.00' }}</span>
           <span class="prodotto-prezzo-note">Trattabile</span>
         </div>
 
-        <!-- Venditore -->
         <div class="venditore-card mb-4">
           <div class="venditore-avatar">
-            {{ datiUtente.venditoreNome.charAt(0).toUpperCase() }} {{datiUtente.venditoreCognome.charAt(0).toUpperCase()}}
+            {{ inizialiVenditore }}
           </div>
           <div class="venditore-info">
             <span class="venditore-label">Venduto da</span>
-            <span class="venditore-nome">{{ datiUtente.venditoreNome }} {{datiUtente.venditoreCognome}}</span>
+            <span class="venditore-nome">
+              {{ datiUtente?.venditoreNome || 'Utente' }} {{ datiUtente?.venditoreCognome || '' }}
+            </span>
           </div>
           <div class="venditore-meta ms-auto text-end">
             <span class="venditore-rating"><i class="bi bi-star-fill me-1"></i>4.8</span>
@@ -67,15 +73,13 @@
           </div>
         </div>
 
-        <!-- Descrizione -->
         <div class="prodotto-desc-block mb-4">
           <h6 class="prodotto-section-title">
             <i class="bi bi-card-text me-2"></i>Descrizione
           </h6>
-          <p class="prodotto-desc">{{ datiUtente.descrizione }}</p>
+          <p class="prodotto-desc">{{ datiUtente?.descrizione || 'Nessuna descrizione fornita.' }}</p>
         </div>
 
-        <!-- Info rapide -->
         <div class="prodotto-info-grid mb-4">
           <div class="info-chip">
             <i class="bi bi-box-seam"></i>
@@ -95,9 +99,8 @@
           </div>
         </div>
 
-        <!-- Azioni -->
         <div class="d-flex flex-column flex-sm-row gap-3">
-          <button class="btn btn-contatta flex-grow-1" (click)="apriChat()">
+          <button class="btn btn-contatta flex-grow-1" (click)="apriChat()" [disabled]="!datiUtente?.id_prodotto">
             <i class="bi bi-chat-dots me-2"></i>Contatta il venditore
           </button>
           <button class="btn btn-preferito">
@@ -105,7 +108,6 @@
           </button>
         </div>
 
-        <!-- Avviso sicurezza -->
         <div class="safety-note mt-3">
           <i class="bi bi-info-circle me-2"></i>
           Incontra il venditore solo a scuola in luoghi visibili. Non inviare pagamenti anticipati.
@@ -114,7 +116,6 @@
       </div>
     </div>
 
-    <!-- ── PRODOTTI CORRELATI ── -->
     <div class="mt-5 pt-3">
       <h4 class="section-title mb-1">Potrebbero interessarti</h4>
       <p class="section-sub mb-4">Altri annunci nella stessa categoria</p>
@@ -125,12 +126,16 @@
             <div class="correlato-card" (click)="clickProdotto(prodotto)" style="cursor: pointer;">
 
               <div class="correlato-img" [ngClass]="getGradient(prodotto.id_categoria)">
-                <i class="bi" [ngClass]="getIcon(prodotto.id_categoria)"></i>
+                @if (prodotto.immagine_url) {
+                  <img [src]="prodotto.immagine_url.startsWith('http') ? prodotto.immagine_url : 'http://localhost:3000' + prodotto.immagine_url"
+                       alt="Foto" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
+                } @else {
+                  <i class="bi" [ngClass]="getIcon(prodotto.id_categoria)"></i>
+                }
                 <button class="correlato-fav" (click)="$event.stopPropagation()">
                   <i class="bi bi-heart"></i>
                 </button>
               </div>
-
               <div class="correlato-body">
                 <p class="correlato-title text-truncate" [title]="prodotto.nome">
                   {{ prodotto.nome }}
@@ -138,8 +143,8 @@
                 <div class="d-flex align-items-center justify-content-between mt-2">
                   <span class="correlato-price">€ {{ prodotto.prezzo }}</span>
                   <span class="correlato-seller text-truncate">
-                <i class="bi bi-person-circle me-1"></i>ID: {{ prodotto.id_venditore }}
-              </span>
+                    <i class="bi bi-person-circle me-1"></i>ID: {{ prodotto.id_venditore }}
+                  </span>
                 </div>
               </div>
 

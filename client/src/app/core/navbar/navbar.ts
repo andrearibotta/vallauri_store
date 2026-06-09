@@ -33,6 +33,16 @@ export class Navbar implements AfterViewInit, OnInit {
     });
   }
 
+  closeNav(toggler: HTMLButtonElement) {
+  // Verifica se la navbar è visibile (aria-expanded è true su mobile quando è aperta)
+  const isExpanded = toggler.getAttribute('aria-expanded') === 'true';
+  
+  // Se la navbar è visibile, simula il click sul pulsante per richiuderla
+  if (isExpanded) {
+    toggler.click();
+  }
+}
+
   ngOnInit() {
     console.log("Navbar: Controllo l'identità dell'utente al boot dell'app...");
 
