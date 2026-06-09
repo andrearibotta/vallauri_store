@@ -198,6 +198,20 @@ export class Chat implements OnInit {
     this.nuovoMessaggio = '';
     console.log("INVIANDO AL SERVER QUESTO PAYLOAD:", payload);
     this.socket.emit("send_message", payload);
+
+    // 1. Forza la chat a scorrere subito giù per farti vedere il messaggio appena inviato
+    this.scrollToBottom();
+
+    // 2. Trucco per Mobile: resetta la visuale del browser rimettendo la pagina "su"
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.body.scrollTop = 0; // Fallback per vecchi browser
+    }, 50);
+    };
+
+    this.nuovoMessaggio = '';
+    console.log("INVIANDO AL SERVER QUESTO PAYLOAD:", payload);
+    this.socket.emit("send_message", payload);
   }
 
   hasNonLetti(contatto: any): boolean {
