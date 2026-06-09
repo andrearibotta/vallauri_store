@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, NgZone, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router'; // 1. IMPORTA IL ROUTER
 import { Httpcalls } from '../../services/httpcalls';
 import { io } from 'socket.io-client';
 
@@ -22,34 +22,40 @@ export class Chat implements OnInit {
   conversazioneAttiva: any = null;
   utenteLoggato: any = {};
 
-  // Chiave univoca per ogni conversazione: "id_utente_id_prodotto"
   nonLetti: Set<string> = new Set();
 
-  constructor(private http: Httpcalls, private ngZone: NgZone, private cdr: ChangeDetectorRef) { }
+  // 2. INIETTA IL ROUTER NEL COSTRUTTORE
+  constructor(
+    private http: Httpcalls, 
+    private ngZone: NgZone, 
+    private cdr: ChangeDetectorRef,
+    private router: Router 
+  ) { }
 
   ngOnInit() {
-    // Recuperiamo in modo sicuro l'utente autenticato tramite sessione/cookie prima di fare qualsiasi cosa
+    // Controllo rigoroso dell'identità
     this.http.Get('/auth/me').subscribe({
       next: (data: any) => {
         if (data && data.user) {
           this.utenteLoggato = data.user;
           this.utenteLoggato.id = Number(this.utenteLoggato.id);
+          // Inizializza la chat solo se l'utente è reale
+          this.inizializzaChatESocket();
         } else {
-          // Fallback se la struttura è diversa
-          this.utenteLoggato = history.state.utenteLoggato || { id: 53 };
-          this.utenteLoggato.id = Number(this.utenteLoggato.id);
+          // Se per qualche motivo la chiamata ha successo ma manca l'user
+          console.warn("Nessun dato utente valido. Reindirizzamento al login...");
+          this.router.navigate(['/login']);
         }
-        // Una volta ottenuto l'ID certo, inizializziamo la chat
-        this.inizializzaChatESocket();
       },
       error: (err) => {
-        console.error("Errore nel recupero dell'utente loggato, uso fallback:", err);
-        this.utenteLoggato = history.state.utenteLoggato || { id: 53 };
-        this.utenteLoggato.id = Number(this.utenteLoggato.id);
-        this.inizializzaChatESocket();
+        // 3. NIENTE PIÙ FALLBACK. Se c'è errore (es. token scaduto o assente), fuori!
+        console.error("Accesso non autorizzato alla chat. Ritorno al login.");
+        this.router.navigate(['/login']);
       }
     });
   }
+
+  // ... (IL RESTO DEL TUO CODICE RIMANE IDENTICO DA inizializzaChatESocket IN GIÙ) ...
 
   /**
    * Inizializza i contatti e la connessione socket solo dopo aver stabilito l'ID utente
