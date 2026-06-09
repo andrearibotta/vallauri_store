@@ -126,37 +126,6 @@
               </div>
             </div>
 
-            <div class="row g-2 mb-4">
-              <div class="col-7">
-                <label class="form-label login-label" for="regIndirizzo">Indirizzo</label>
-                <div class="input-group login-input-group">
-                  <span class="input-group-text login-input-icon">
-                    <i class="bi bi-mortarboard"></i>
-                  </span>
-                  <select id="regIndirizzo" class="form-select login-input login-select" (change)="selind()" [(ngModel)]="strind">
-                    <option value="" disabled selected>Scegli…</option>
-                    @for(i of indirizzi; track $index) {
-                      <option>{{ i }}</option>
-                    }
-                  </select>
-                </div>
-              </div>
-              <div class="col-5">
-                <label class="form-label login-label" for="regClasse">Classe</label>
-                <div class="input-group login-input-group">
-                  <span class="input-group-text login-input-icon">
-                    <i class="bi bi-hash"></i>
-                  </span>
-                  <select id="regClasse" class="form-select login-input login-select" [disabled]="!indselezionato" [(ngModel)]="classesel">
-                    <option value="" disabled selected>Anno</option>
-                    @for(cl of classiperind; track $index) {
-                      <option [value]="cl.id_classe">{{cl.classe}}</option>
-                    }
-                  </select>
-                </div>
-              </div>
-            </div>
-
             <button class="btn btn-login w-100" (click)="registrati()">
               <i class="bi bi-person-plus me-2"></i>Crea il mio account
             </button>
