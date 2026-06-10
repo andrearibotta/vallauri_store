@@ -15,7 +15,7 @@
         <div class="prodotto-img-card">
           <div class="prodotto-img-wrap" [ngClass]="gradientClass">
             @if (datiUtente?.immagini && datiUtente.immagini.length > 0) {
-              <img [src]="datiUtente.immagini[0].startsWith('http') ? datiUtente.immagini[0] : 'http://localhost:3000' + datiUtente.immagini[0]"
+              <img [src]="datiUtente.immagini[0].startsWith('http') ? datiUtente.immagini[0] : 'https://api.vallauristore.it' + datiUtente.immagini[0]"
                    alt="Foto prodotto"
                    style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
             } @else {
@@ -25,7 +25,7 @@
           <div class="prodotto-thumbs">
             @for (img of datiUtente?.immagini; track $index) {
               <div class="thumb" [ngClass]="gradientClass">
-                <img [src]="img.startsWith('http') ? img : 'http://localhost:3000' + img"
+                <img [src]="img.startsWith('http') ? img : 'https://api.vallauristore.it' + img"
                      alt="Foto {{$index + 1}}"
                      style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
               </div>
@@ -127,7 +127,7 @@
 
               <div class="correlato-img" [ngClass]="getGradient(prodotto.id_categoria)">
                 @if (prodotto.immagine_url) {
-                  <img [src]="prodotto.immagine_url.startsWith('http') ? prodotto.immagine_url : 'http://localhost:3000' + prodotto.immagine_url"
+                  <img [src]="prodotto.immagine_url.startsWith('http') ? prodotto.immagine_url : 'https://api.vallauristore.it' + prodotto.immagine_url"
                        alt="Foto" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
                 } @else {
                   <i class="bi" [ngClass]="getIcon(prodotto.id_categoria)"></i>
